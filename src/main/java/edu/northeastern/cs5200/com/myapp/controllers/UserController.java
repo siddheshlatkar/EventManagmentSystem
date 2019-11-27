@@ -16,6 +16,7 @@ import javax.servlet.http.HttpSession;
 import edu.northeastern.cs5200.com.myapp.models.Admin;
 import edu.northeastern.cs5200.com.myapp.models.Artist;
 import edu.northeastern.cs5200.com.myapp.models.Contract;
+import edu.northeastern.cs5200.com.myapp.models.Event;
 import edu.northeastern.cs5200.com.myapp.models.Manager;
 import edu.northeastern.cs5200.com.myapp.models.User;
 import edu.northeastern.cs5200.com.myapp.services.AdminService;
@@ -347,7 +348,7 @@ public class UserController {
     }
 
     contract = contractService.acceptContract(contractId);
-
+    session.setAttribute("currentUserId", id);
     return new ResponseEntity(contract, HttpStatus.OK);
   }
 
@@ -371,6 +372,37 @@ public class UserController {
 
     contract = contractService.rejectContract(contractId);
 
+    session.setAttribute("currentUserId", id);
     return new ResponseEntity(contract, HttpStatus.OK);
+  }
+
+  @PostMapping("api/users/{id}/contracts/{contractId}/events")
+  public ResponseEntity<Event> createEvent(@PathVariable("id") int id, @PathVariable("contractId") int contractId, @RequestBody Event event, HttpSession session) {
+    if (!validateId(id, session)) {
+      return new ResponseEntity("Please login first", HttpStatus.BAD_REQUEST);
+    }
+
+    Manager manager = managerService.findManagerByID(id);
+
+    if (manager == null) {
+      return new ResponseEntity("Please login as an manager.", HttpStatus.BAD_REQUEST);
+    }
+
+    Contract contract = contractService.findContractById(contractId);
+    if (contract == null) {
+      return new ResponseEntity("Invalid contract id.", HttpStatus.BAD_REQUEST);
+    }
+    if (contract.getEvent() != null) {
+      return new ResponseEntity("Already an event to this contract.", HttpStatus.BAD_REQUEST);
+    }
+
+    if (contract.getStatus().equals("Pending") || contract.getStatus().equals("Rejected")) {
+      return new ResponseEntity("Event can not be creared before for Pending/Rejected contract", HttpStatus.BAD_REQUEST);
+    }
+
+    Event newEvent = contractService.createEvent(event.getName(), event.getDescription(),
+            event.getCapacity(), event.getDate(), contract);
+
+    return new ResponseEntity(newEvent, HttpStatus.OK);
   }
 }

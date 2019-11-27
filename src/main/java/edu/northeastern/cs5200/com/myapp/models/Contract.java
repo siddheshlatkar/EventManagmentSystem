@@ -9,6 +9,7 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
 @Entity
@@ -37,6 +38,9 @@ public class Contract {
   @JsonIgnore
   @JoinColumn
   private Artist artist;
+
+  @OneToOne(mappedBy = "contract")
+  private Event event;
 
   public Contract() {
 
@@ -98,4 +102,11 @@ public class Contract {
     this.status = status;
   }
 
+  public Event getEvent() {
+    return event;
+  }
+
+  public void setEvent(Event event) {
+    this.event = event;
+  }
 }
