@@ -1,48 +1,69 @@
 package edu.northeastern.cs5200.com.myapp.services;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.stereotype.Service;
 
-import javax.servlet.http.HttpSession;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.List;
 
+import edu.northeastern.cs5200.com.myapp.models.Artist;
+import edu.northeastern.cs5200.com.myapp.models.Contract;
+import edu.northeastern.cs5200.com.myapp.models.ContractStatus;
 import edu.northeastern.cs5200.com.myapp.models.Manager;
+import edu.northeastern.cs5200.com.myapp.repositories.ArtistRepository;
+import edu.northeastern.cs5200.com.myapp.repositories.ContractRepository;
 import edu.northeastern.cs5200.com.myapp.repositories.ManagerRepository;
 
-@RestController
+@Service
 public class ManagerService {
 
   @Autowired
   private ManagerRepository managerRepository;
 
+  @Autowired
+  private ArtistRepository artistRepository;
 
-  @PostMapping(path = "/api/managers", consumes = "application/json")
-  public ResponseEntity<Manager> register(@RequestBody Manager manager, HttpSession session) {
-    session.setAttribute("currentUser", manager);
-    if ((manager.getUserName() == null || manager.getPassword() == null) || manager.getUserName().isEmpty() || manager.getPassword().isEmpty()) {
-      return new ResponseEntity("User name or Password can not be blank", HttpStatus.BAD_REQUEST);
+  @Autowired
+  private ContractRepository contractRepository;
+
+  public Manager registerNewManager(Manager artist) {
+    Manager alreadyRegisteredManager = managerRepository.findByUserName(artist.getUserName());
+    if (alreadyRegisteredManager != null) {
+      return null;
     }
-    Manager existingManager = (Manager) managerRepository.findByUserName(manager.getUserName());
-    if (existingManager != null) {
-      return new ResponseEntity("Username is already taken", HttpStatus.BAD_REQUEST);
-    }
-    Manager registeredManager = managerRepository.save(((Manager)manager));
-    return new ResponseEntity(registeredManager, HttpStatus.OK);
+    return managerRepository.save(artist);
   }
 
-  @PostMapping(path = "api/managers/login")
-  public ResponseEntity<Manager> login(@RequestBody Manager manager, HttpSession session) {
-    if ((manager.getUserName() == null || manager.getPassword() == null) || manager.getUserName().isEmpty() || manager.getPassword().isEmpty()) {
-      return new ResponseEntity("User name or Password can not be blank", HttpStatus.BAD_REQUEST);
+  public Manager findByUserIDAndPassword(String userName, String password) {
+    return managerRepository.findByUserNameAndPassword(userName, password);
+  }
+
+  public Manager findManagerByID(int id) {
+    return managerRepository.findById(id).get();
+  }
+
+  public List<Manager> findAllManagers() {
+    Iterable<Manager> it =  managerRepository.findAll();
+    List<Manager> managers = new ArrayList();
+
+    for (Manager manager : it) {
+      managers.add(manager);
     }
-    Manager existingManager = (Manager) managerRepository.findByUserNameAndPassword(manager.getUserName(), manager.getPassword());
-    if (existingManager != null) {
-      session.setAttribute("currentUSer", existingManager);
-      return new ResponseEntity(existingManager, HttpStatus.OK);
-    }
-    return new ResponseEntity("Username or password is wrong", HttpStatus.BAD_REQUEST);
+    return managers;
+  }
+
+  public Contract createContract(Manager manager, Artist artist, String text) {
+    Contract contract = new Contract(manager, artist, Calendar.getInstance().getTime().toString(), text, ContractStatus.REQUESTED.getStatus());
+    manager.addContract(contract);
+    artist.addContract(contract);
+    contractRepository.save(contract);
+    return contract;
+  }
+
+  public List<Contract> getContracts(Integer id) {
+    Manager manager = managerRepository.findById(id).get();
+    return manager.getContracts();
+
   }
 }
