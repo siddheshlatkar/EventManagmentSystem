@@ -40,6 +40,7 @@ public class Contract {
   private Artist artist;
 
   @OneToOne(mappedBy = "contract")
+  @JsonIgnore
   private Event event;
 
   public Contract() {

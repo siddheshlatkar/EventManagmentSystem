@@ -86,38 +86,17 @@ public class UserController {
 
   @PostMapping(path = "api/user/login", consumes = "application/json")
   public ResponseEntity<Artist> login(@RequestBody User user, HttpSession session) {
-    if (user.getUserType() == null) {
-      return new ResponseEntity("User Type can not be null", HttpStatus.BAD_REQUEST);
-    }
-    User existingUser = null;
-    if (user.getUserType().equals("Manager")) {
-      existingUser = managerService.findByUserIDAndPassword(user.getUserName(), user.getPassword());
-      session.setAttribute("currentUserType", "MANAGER");
-    } else if (user.getUserType().equals("Artist")) {
 
-      existingUser = artistService.findByUserIDAndPassword(user.getUserName(), user.getPassword());
-      session.setAttribute("currentUserType", "ARTIST");
+    User loggedUser = userService.findByUserIDAndPassword(user.getUserName(), user.getPassword());
 
-    } else if (user.getUserType().equals("Admin")) {
-
-      existingUser = adminService.findByUserIDAndPassword(user.getUserName(), user.getPassword());
-      session.setAttribute("currentUserType", "ADMIN");
-
-    } else if (user.getUserType().equals("User")) {
-
-      existingUser = userService.findByUserIDAndPassword(user.getUserName(), user.getPassword());
-      session.setAttribute("currentUserType", "USER");
-
-    } else {
-      return new ResponseEntity("Invalid user type passed.", HttpStatus.BAD_REQUEST);
-    }
-
-    if (existingUser == null) {
+    if (loggedUser == null) {
       return new ResponseEntity("Username or password is wrong", HttpStatus.BAD_REQUEST);
     }
-    session.setAttribute("currentUserId", existingUser.getId());
-    return new ResponseEntity(existingUser, HttpStatus.OK);
+
+    session.setAttribute("currentUserId", loggedUser.getId());
+    return new ResponseEntity(loggedUser, HttpStatus.OK);
   }
+
 
   @GetMapping(path = "api/users/{id}/logout", consumes = "application/json")
   public ResponseEntity<String> logout(@PathVariable("id") int id, HttpSession session) {
