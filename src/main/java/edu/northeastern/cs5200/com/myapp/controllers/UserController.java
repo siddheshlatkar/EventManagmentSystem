@@ -104,6 +104,7 @@ public class UserController {
       return new ResponseEntity("Please login first", HttpStatus.BAD_REQUEST);
     }
     session.invalidate();
+
     return new ResponseEntity("Successfully logged out.", HttpStatus.OK);
   }
 
@@ -114,6 +115,7 @@ public class UserController {
       return new ResponseEntity("Please login first", HttpStatus.BAD_REQUEST);
     }
     User user = userService.findUserByID(id);
+    session.setAttribute("currentUserId", id);
     return new ResponseEntity(user, HttpStatus.OK);
   }
 
@@ -238,9 +240,10 @@ public class UserController {
       return new ResponseEntity("Please login as a admin.", HttpStatus.BAD_REQUEST);
     }
 
-    session.setAttribute("currentUserId", id);
+
 
     List<Artist> artists = artistService.findAllArtists();
+    session.setAttribute("currentUserId", id);
     return new ResponseEntity(artists, HttpStatus.OK);
   }
 
@@ -255,10 +258,10 @@ public class UserController {
       return new ResponseEntity("Please login as a admin.", HttpStatus.BAD_REQUEST);
     }
 
-    session.setAttribute("currentUserId", id);
 
     List<User> users = userService.findAllUsers();
 
+    session.setAttribute("currentUserId", id);
     return new ResponseEntity(users, HttpStatus.OK);
   }
 
@@ -382,6 +385,7 @@ public class UserController {
     Event newEvent = contractService.createEvent(event.getName(), event.getDescription(),
             event.getCapacity(), event.getDate(), contract);
 
+    session.setAttribute("currentUserId", id);
     return new ResponseEntity(newEvent, HttpStatus.OK);
   }
 }
