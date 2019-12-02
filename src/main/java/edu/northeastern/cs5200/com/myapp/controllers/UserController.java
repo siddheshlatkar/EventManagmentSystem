@@ -127,12 +127,17 @@ public class UserController {
   @CrossOrigin(origins = "*", allowedHeaders = "*")
   @GetMapping(path = "api/users/{id}/logout" )
   public ResponseEntity<String> logout(@PathVariable("id") int id, HttpSession session) {
-    if (!validateId(id, session)) {
-      return new ResponseEntity("Please login first", HttpStatus.BAD_REQUEST);
-    }
-    session.invalidate();
+//    if (!validateId(id, session)) {
+//      return new ResponseEntity("Please login first", HttpStatus.BAD_REQUEST);
+//    }
+//    session.invalidate();
 
-    return new ResponseEntity("Successfully logged out.", HttpStatus.OK);
+
+    ResponseEntity responseEntity = ResponseEntity.ok()
+            .header("Authorization", "")
+            .body("Successfully logged out.");
+    //return new ResponseEntity("Successfully logged out.", HttpStatus.OK);
+    return responseEntity;
   }
 
 
