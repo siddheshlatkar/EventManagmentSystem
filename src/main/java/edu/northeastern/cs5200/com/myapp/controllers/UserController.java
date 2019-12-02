@@ -96,7 +96,7 @@ public class UserController {
 
   @CrossOrigin(origins = "*", allowedHeaders = "*")
   @PostMapping(path = "api/user/login" )
-  public ResponseEntity login(@RequestBody User user, HttpServletResponse response) {
+  public ResponseEntity login(@RequestBody User user) {
 
     User loggedUser = userService.findByUserIDAndPassword(user.getUserName(), user.getPassword());
 
@@ -107,16 +107,16 @@ public class UserController {
     //System.out.println("*****ID " + loggedUser.getId() + "name  " + loggedUser.getUserName());
 
 
-    Cookie cookie = new Cookie("currentUser", loggedUser.getId().toString());
-    cookie.setPath("/");
+    //Cookie cookie = new Cookie("currentUser", loggedUser.getId().toString());
+    //cookie.setPath("/");
 
-    response.addCookie(cookie);
+    //response.addCookie(cookie);
 
-//    ResponseEntity responseEntity = ResponseEntity.ok()
-//            .header("currentUser", loggedUser.getId().toString())
-//            .body(loggedUser);
+    ResponseEntity responseEntity = ResponseEntity.ok()
+            .header("Authorization", loggedUser.getId().toString())
+            .body(loggedUser);
 
-    ResponseEntity responseEntity = new ResponseEntity(loggedUser, HttpStatus.OK);
+    //ResponseEntity responseEntity = new ResponseEntity(loggedUser, HttpStatus.OK);
 
 
     //session.setAttribute("currentUserId", loggedUser.getId());
@@ -142,25 +142,27 @@ public class UserController {
     //System.out.println("****Cookie Value" + req.getCookies()[0].getValue());
     //System.out.println("****Cookie name" + req.getCookies()[0].getName());
 
+    String auth = req.getHeader("Authorization");
 
-    if (req.getCookies() == null) {
+    System.out.println("****Auth " + auth);
+    if (auth == null || (auth != null && !auth.equals(""+ id))) {
       return new ResponseEntity("Please login first", HttpStatus.BAD_REQUEST);
     }
 
-    String cookieValue = Arrays.stream(req.getCookies())
-            .filter(c -> c.getName().equals("currentUser"))
-            .findFirst()
-            .map(Cookie::getValue)
-            .orElse(null);
+//    String cookieValue = Arrays.stream(req.getCookies())
+//            .filter(c -> c.getName().equals("currentUser"))
+//            .findFirst()
+//            .map(Cookie::getValue)
+//            .orElse(null);
 
 
-    if (cookieValue == null) {
-      return new ResponseEntity("Can't get cookie with namecurrentUser", HttpStatus.BAD_REQUEST);
-    }
-
-    if (!cookieValue.equals("" + id)) {
-      return new ResponseEntity("id and cookie value does not match", HttpStatus.BAD_REQUEST);
-    }
+//    if (cookieValue == null) {
+//      return new ResponseEntity("Can't get cookie with namecurrentUser", HttpStatus.BAD_REQUEST);
+//    }
+//
+//    if (!cookieValue.equals("" + id)) {
+//      return new ResponseEntity("id and cookie value does not match", HttpStatus.BAD_REQUEST);
+//    }
 
 //    System.out.println("****Cookie " + Arrays.stream(req.getCookies())
 //            .filter(c -> c.getName().equals("currentUser"))
