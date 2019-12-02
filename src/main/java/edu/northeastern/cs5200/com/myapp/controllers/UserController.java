@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.servlet.http.HttpSession;
@@ -45,7 +46,7 @@ public class UserController {
   private ContractService contractService;
 
   @CrossOrigin(origins = "*", allowedHeaders = "*")
-  @PostMapping(path = "/api/users", consumes = "application/json")
+  @PostMapping(path = "/api/users" )
   public ResponseEntity<User> register(@RequestBody User user, HttpSession session) {
 
     if (user.getUserName() == null || user.getPassword() == null || user.getUserName().isEmpty()
@@ -88,7 +89,7 @@ public class UserController {
   }
 
   @CrossOrigin(origins = "*", allowedHeaders = "*")
-  @PostMapping(path = "api/user/login", consumes = "application/json")
+  @PostMapping(path = "api/user/login" )
   public ResponseEntity<Artist> login(@RequestBody User user, HttpSession session) {
 
     User loggedUser = userService.findByUserIDAndPassword(user.getUserName(), user.getPassword());
@@ -102,7 +103,7 @@ public class UserController {
   }
 
   @CrossOrigin(origins = "*", allowedHeaders = "*")
-  @GetMapping(path = "api/users/{id}/logout", consumes = "application/json")
+  @GetMapping(path = "api/users/{id}/logout" )
   public ResponseEntity<String> logout(@PathVariable("id") int id, HttpSession session) {
     if (!validateId(id, session)) {
       return new ResponseEntity("Please login first", HttpStatus.BAD_REQUEST);
@@ -114,7 +115,7 @@ public class UserController {
 
 
   @CrossOrigin(origins = "*", allowedHeaders = "*")
-  @GetMapping(path = "api/users/{id}/profile", consumes = "application/json")
+  @GetMapping(path = "api/users/{id}/profile" )
   public ResponseEntity<User> profile(@PathVariable("id") int id, HttpSession session) {
     if (!validateId(id, session)) {
       return new ResponseEntity("Please login first", HttpStatus.BAD_REQUEST);
@@ -139,7 +140,7 @@ public class UserController {
   }
 
   @CrossOrigin(origins = "*", allowedHeaders = "*")
-  @PostMapping(path = "api/users/{id}/creatUser", consumes = "application/json")
+  @PostMapping(path = "api/users/{id}/creatUser" )
   public ResponseEntity<User> createUser(@PathVariable("id") int id, @RequestBody User user, HttpSession session) {
     if (!validateId(id, session)) {
       return new ResponseEntity("Please login first", HttpStatus.BAD_REQUEST);
@@ -191,7 +192,7 @@ public class UserController {
 
 
   @CrossOrigin(origins = "*", allowedHeaders = "*")
-  @PostMapping(path = "api/users/{id}/deleteUser/{userToBeDeleted}", consumes = "application/json")
+  @PostMapping(path = "api/users/{id}/deleteUser/{userToBeDeleted}" )
   public ResponseEntity<String> deleteUser(@PathVariable("id") int id, @PathVariable("userToBeDeleted") User user, HttpSession session) {
     if (!validateId(id, session)) {
       return new ResponseEntity("Please login first", HttpStatus.BAD_REQUEST);
@@ -219,7 +220,7 @@ public class UserController {
   }
 
   @CrossOrigin(origins = "*", allowedHeaders = "*")
-  @GetMapping(path = "api/users/{id}/listManagers", consumes = "application/json")
+  @GetMapping(path = "api/users/{id}/listManagers" )
   public ResponseEntity<String> listManagers(@PathVariable("id") int id, HttpSession session) {
     if (!validateId(id, session)) {
       return new ResponseEntity("Please login first", HttpStatus.BAD_REQUEST);
@@ -237,7 +238,7 @@ public class UserController {
   }
 
   @CrossOrigin(origins = "*", allowedHeaders = "*")
-  @GetMapping(path = "api/users/{id}/listArtists", consumes = "application/json")
+  @GetMapping(path = "api/users/{id}/listArtists" )
   public ResponseEntity<String> listArtists(@PathVariable("id") int id, HttpSession session) {
     if (!validateId(id, session)) {
       return new ResponseEntity("Please login first", HttpStatus.BAD_REQUEST);
@@ -256,7 +257,7 @@ public class UserController {
   }
 
   @CrossOrigin(origins = "*", allowedHeaders = "*")
-  @GetMapping(path = "api/users/{id}/listUsers", consumes = "application/json")
+  @GetMapping(path = "api/users/{id}/listUsers")
   public ResponseEntity<String> listUsers(@PathVariable("id") int id, HttpSession session) {
     if (!validateId(id, session)) {
       return new ResponseEntity("Please login first", HttpStatus.BAD_REQUEST);
@@ -275,7 +276,7 @@ public class UserController {
   }
 
   @CrossOrigin(origins = "*", allowedHeaders = "*")
-  @PostMapping(path = "api/users/{id}/request/artists/{artistId}", consumes = "application/json")
+  @PostMapping(path = "api/users/{id}/request/artists/{artistId}" )
   public ResponseEntity<Contract> request(@PathVariable("id") int id, @PathVariable("artistId") int artistId, @RequestBody Contract contract, HttpSession session) {
     if (!validateId(id, session)) {
       return new ResponseEntity("Please login first", HttpStatus.BAD_REQUEST);
@@ -300,7 +301,7 @@ public class UserController {
   }
 
   @CrossOrigin(origins = "*", allowedHeaders = "*")
-  @GetMapping(path = "api/users/{id}/contracts", consumes = "application/json")
+  @GetMapping(path = "api/users/{id}/contracts" )
   public ResponseEntity<List<Contract>> getContracts(@PathVariable("id") int id, HttpSession session) {
     if (!validateId(id, session)) {
       return new ResponseEntity("Please login first", HttpStatus.BAD_REQUEST);
@@ -323,7 +324,7 @@ public class UserController {
   }
 
   @CrossOrigin(origins = "*", allowedHeaders = "*")
-  @PostMapping("api/users/{id}/contracts/{contractId}/accept")
+  @PostMapping(value = "api/users/{id}/contracts/{contractId}/accept" )
   public ResponseEntity<Contract> acceptContract(@PathVariable("id") int id, @PathVariable("contractId") int contractId, HttpSession session) {
     if (!validateId(id, session)) {
       return new ResponseEntity("Please login first", HttpStatus.BAD_REQUEST);
@@ -347,7 +348,7 @@ public class UserController {
   }
 
   @CrossOrigin(origins = "*", allowedHeaders = "*")
-  @PostMapping("api/users/{id}/contracts/{contractId}/reject")
+  @PostMapping(value = "api/users/{id}/contracts/{contractId}/reject" )
   public ResponseEntity<Contract> rejectContract(@PathVariable("id") int id, @PathVariable("contractId") int contractId, HttpSession session) {
     if (!validateId(id, session)) {
       return new ResponseEntity("Please login first", HttpStatus.BAD_REQUEST);
@@ -372,7 +373,7 @@ public class UserController {
   }
 
   @CrossOrigin(origins = "*", allowedHeaders = "*")
-  @PostMapping("api/users/{id}/contracts/{contractId}/events")
+  @PostMapping(value = "api/users/{id}/contracts/{contractId}/events" )
   public ResponseEntity<Event> createEvent(@PathVariable("id") int id, @PathVariable("contractId") int contractId, @RequestBody Event event, HttpSession session) {
     if (!validateId(id, session)) {
       return new ResponseEntity("Please login first", HttpStatus.BAD_REQUEST);
@@ -402,4 +403,33 @@ public class UserController {
     session.setAttribute("currentUserId", id);
     return new ResponseEntity(newEvent, HttpStatus.OK);
   }
+
+  @CrossOrigin(origins = "*", allowedHeaders = "*")
+  @GetMapping("/api/users/{id}/allUsers")
+  public ResponseEntity<List<User>> getAllUsers(@PathVariable("id") int id, HttpSession session) {
+    if (!validateId(id, session)) {
+      return new ResponseEntity("Please login first", HttpStatus.BAD_REQUEST);
+    }
+
+    Admin admin = adminService.findById(id);
+
+    if (admin == null) {
+      return new ResponseEntity("Login as a Admin", HttpStatus.BAD_REQUEST);
+    }
+
+    List<Object> users = new ArrayList<>();
+
+    List<User> userTypes = userService.findAllUsers();
+    List<Manager> managers = managerService.findAllManagers();
+    List<Artist> artists = artistService.findAllArtists();
+
+    users.add(managers);
+    users.add(userTypes);
+    users.add(artists);
+
+    session.setAttribute("currentUserId", id);
+    return new ResponseEntity(users, HttpStatus.OK);
+  }
+
+
 }

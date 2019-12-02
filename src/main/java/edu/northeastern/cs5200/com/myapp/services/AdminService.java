@@ -20,4 +20,8 @@ public class AdminService {
   public Admin findByUserIDAndPassword(String userName, String password) {
     return adminRepository.findByUserNameAndPassword(userName, password);
   }
+
+  public Admin findById(int id) {
+    return adminRepository.findById(id).get();
+  }
 }

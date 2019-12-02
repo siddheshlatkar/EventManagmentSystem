@@ -1,5 +1,7 @@
 package edu.northeastern.cs5200.com.myapp.models;
 
+import java.io.Serializable;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
