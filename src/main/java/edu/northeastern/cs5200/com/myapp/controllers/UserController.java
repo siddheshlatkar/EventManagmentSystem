@@ -126,16 +126,16 @@ public class UserController {
   }
 
   private boolean validateId(int id, HttpSession session) {
-    if (session == null) {
-      return false;
-    }
-    try {
-      if (Integer.parseInt(session.getAttribute("currentUserId").toString()) != id) {
-        return false;
-      }
-    } catch (Exception e) {
-      return false;
-    }
+//    if (session == null) {
+//      return false;
+//    }
+//    try {
+//      if (Integer.parseInt(session.getAttribute("currentUserId").toString()) != id) {
+//        return false;
+//      }
+//    } catch (Exception e) {
+//      return false;
+//    }
     return true;
   }
 
