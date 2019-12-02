@@ -3,6 +3,7 @@ package edu.northeastern.cs5200.com.myapp.controllers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -25,6 +26,7 @@ import edu.northeastern.cs5200.com.myapp.services.ContractService;
 import edu.northeastern.cs5200.com.myapp.services.ManagerService;
 import edu.northeastern.cs5200.com.myapp.services.UserService;
 
+@CrossOrigin(origins = "*", allowedHeaders = "*")
 @RestController
 public class UserController {
   @Autowired
@@ -42,6 +44,7 @@ public class UserController {
   @Autowired
   private ContractService contractService;
 
+  @CrossOrigin(origins = "*", allowedHeaders = "*")
   @PostMapping(path = "/api/users", consumes = "application/json")
   public ResponseEntity<User> register(@RequestBody User user, HttpSession session) {
 
@@ -84,6 +87,7 @@ public class UserController {
     return new ResponseEntity(newUser, HttpStatus.OK);
   }
 
+  @CrossOrigin(origins = "*", allowedHeaders = "*")
   @PostMapping(path = "api/user/login", consumes = "application/json")
   public ResponseEntity<Artist> login(@RequestBody User user, HttpSession session) {
 
@@ -97,7 +101,7 @@ public class UserController {
     return new ResponseEntity(loggedUser, HttpStatus.OK);
   }
 
-
+  @CrossOrigin(origins = "*", allowedHeaders = "*")
   @GetMapping(path = "api/users/{id}/logout", consumes = "application/json")
   public ResponseEntity<String> logout(@PathVariable("id") int id, HttpSession session) {
     if (!validateId(id, session)) {
@@ -109,6 +113,7 @@ public class UserController {
   }
 
 
+  @CrossOrigin(origins = "*", allowedHeaders = "*")
   @GetMapping(path = "api/users/{id}/profile", consumes = "application/json")
   public ResponseEntity<User> profile(@PathVariable("id") int id, HttpSession session) {
     if (!validateId(id, session)) {
@@ -133,6 +138,7 @@ public class UserController {
     return true;
   }
 
+  @CrossOrigin(origins = "*", allowedHeaders = "*")
   @PostMapping(path = "api/users/{id}/creatUser", consumes = "application/json")
   public ResponseEntity<User> createUser(@PathVariable("id") int id, @RequestBody User user, HttpSession session) {
     if (!validateId(id, session)) {
@@ -184,7 +190,7 @@ public class UserController {
   }
 
 
-
+  @CrossOrigin(origins = "*", allowedHeaders = "*")
   @PostMapping(path = "api/users/{id}/deleteUser/{userToBeDeleted}", consumes = "application/json")
   public ResponseEntity<String> deleteUser(@PathVariable("id") int id, @PathVariable("userToBeDeleted") User user, HttpSession session) {
     if (!validateId(id, session)) {
@@ -212,6 +218,7 @@ public class UserController {
     }
   }
 
+  @CrossOrigin(origins = "*", allowedHeaders = "*")
   @GetMapping(path = "api/users/{id}/listManagers", consumes = "application/json")
   public ResponseEntity<String> listManagers(@PathVariable("id") int id, HttpSession session) {
     if (!validateId(id, session)) {
@@ -229,6 +236,7 @@ public class UserController {
     return new ResponseEntity(managers, HttpStatus.OK);
   }
 
+  @CrossOrigin(origins = "*", allowedHeaders = "*")
   @GetMapping(path = "api/users/{id}/listArtists", consumes = "application/json")
   public ResponseEntity<String> listArtists(@PathVariable("id") int id, HttpSession session) {
     if (!validateId(id, session)) {
@@ -247,6 +255,7 @@ public class UserController {
     return new ResponseEntity(artists, HttpStatus.OK);
   }
 
+  @CrossOrigin(origins = "*", allowedHeaders = "*")
   @GetMapping(path = "api/users/{id}/listUsers", consumes = "application/json")
   public ResponseEntity<String> listUsers(@PathVariable("id") int id, HttpSession session) {
     if (!validateId(id, session)) {
@@ -265,6 +274,7 @@ public class UserController {
     return new ResponseEntity(users, HttpStatus.OK);
   }
 
+  @CrossOrigin(origins = "*", allowedHeaders = "*")
   @PostMapping(path = "api/users/{id}/request/artists/{artistId}", consumes = "application/json")
   public ResponseEntity<Contract> request(@PathVariable("id") int id, @PathVariable("artistId") int artistId, @RequestBody Contract contract, HttpSession session) {
     if (!validateId(id, session)) {
@@ -289,6 +299,7 @@ public class UserController {
     return new ResponseEntity(newContract, HttpStatus.OK);
   }
 
+  @CrossOrigin(origins = "*", allowedHeaders = "*")
   @GetMapping(path = "api/users/{id}/contracts", consumes = "application/json")
   public ResponseEntity<List<Contract>> getContracts(@PathVariable("id") int id, HttpSession session) {
     if (!validateId(id, session)) {
@@ -311,6 +322,7 @@ public class UserController {
     return new ResponseEntity(contracts, HttpStatus.OK);
   }
 
+  @CrossOrigin(origins = "*", allowedHeaders = "*")
   @PostMapping("api/users/{id}/contracts/{contractId}/accept")
   public ResponseEntity<Contract> acceptContract(@PathVariable("id") int id, @PathVariable("contractId") int contractId, HttpSession session) {
     if (!validateId(id, session)) {
@@ -334,6 +346,7 @@ public class UserController {
     return new ResponseEntity(contract, HttpStatus.OK);
   }
 
+  @CrossOrigin(origins = "*", allowedHeaders = "*")
   @PostMapping("api/users/{id}/contracts/{contractId}/reject")
   public ResponseEntity<Contract> rejectContract(@PathVariable("id") int id, @PathVariable("contractId") int contractId, HttpSession session) {
     if (!validateId(id, session)) {
@@ -358,6 +371,7 @@ public class UserController {
     return new ResponseEntity(contract, HttpStatus.OK);
   }
 
+  @CrossOrigin(origins = "*", allowedHeaders = "*")
   @PostMapping("api/users/{id}/contracts/{contractId}/events")
   public ResponseEntity<Event> createEvent(@PathVariable("id") int id, @PathVariable("contractId") int contractId, @RequestBody Event event, HttpSession session) {
     if (!validateId(id, session)) {

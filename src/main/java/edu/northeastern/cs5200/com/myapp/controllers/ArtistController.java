@@ -14,6 +14,7 @@ import javax.servlet.http.HttpSession;
 import edu.northeastern.cs5200.com.myapp.models.Artist;
 import edu.northeastern.cs5200.com.myapp.services.ArtistService;
 
+
 @RestController
 public class ArtistController {
 
