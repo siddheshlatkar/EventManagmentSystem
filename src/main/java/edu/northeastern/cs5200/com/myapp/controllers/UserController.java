@@ -1,6 +1,7 @@
 package edu.northeastern.cs5200.com.myapp.controllers;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -11,8 +12,13 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 import edu.northeastern.cs5200.com.myapp.models.Admin;
@@ -90,16 +96,32 @@ public class UserController {
 
   @CrossOrigin(origins = "*", allowedHeaders = "*")
   @PostMapping(path = "api/user/login" )
-  public ResponseEntity<Artist> login(@RequestBody User user, HttpSession session) {
+  public ResponseEntity login(@RequestBody User user, HttpServletResponse response) {
 
     User loggedUser = userService.findByUserIDAndPassword(user.getUserName(), user.getPassword());
+
 
     if (loggedUser == null) {
       return new ResponseEntity("Username or password is wrong", HttpStatus.BAD_REQUEST);
     }
+    //System.out.println("*****ID " + loggedUser.getId() + "name  " + loggedUser.getUserName());
 
-    session.setAttribute("currentUserId", loggedUser.getId());
-    return new ResponseEntity(loggedUser, HttpStatus.OK);
+
+    Cookie cookie = new Cookie("currentUser", loggedUser.getId().toString());
+    cookie.setPath("/");
+
+    response.addCookie(cookie);
+
+//    ResponseEntity responseEntity = ResponseEntity.ok()
+//            .header("currentUser", loggedUser.getId().toString())
+//            .body(loggedUser);
+
+    ResponseEntity responseEntity = new ResponseEntity(loggedUser, HttpStatus.OK);
+
+
+    //session.setAttribute("currentUserId", loggedUser.getId());
+    //return new ResponseEntity(loggedUser, HttpStatus.OK);
+    return responseEntity;
   }
 
   @CrossOrigin(origins = "*", allowedHeaders = "*")
@@ -116,12 +138,51 @@ public class UserController {
 
   @CrossOrigin(origins = "*", allowedHeaders = "*")
   @GetMapping(path = "api/users/{id}/profile" )
-  public ResponseEntity<User> profile(@PathVariable("id") int id, HttpSession session) {
-    if (!validateId(id, session)) {
+  public ResponseEntity<User> profile(@PathVariable("id") Integer id, HttpServletRequest req) {
+    //System.out.println("****Cookie Value" + req.getCookies()[0].getValue());
+    //System.out.println("****Cookie name" + req.getCookies()[0].getName());
+
+
+    if (req.getCookies() == null) {
       return new ResponseEntity("Please login first", HttpStatus.BAD_REQUEST);
     }
+
+    String cookieValue = Arrays.stream(req.getCookies())
+            .filter(c -> c.getName().equals("currentUser"))
+            .findFirst()
+            .map(Cookie::getValue)
+            .orElse(null);
+
+
+    if (cookieValue == null) {
+      return new ResponseEntity("Can't get cookie with namecurrentUser", HttpStatus.BAD_REQUEST);
+    }
+
+    if (!cookieValue.equals("" + id)) {
+      return new ResponseEntity("id and cookie value does not match", HttpStatus.BAD_REQUEST);
+    }
+
+//    System.out.println("****Cookie " + Arrays.stream(req.getCookies())
+//            .filter(c -> c.getName().equals("currentUser"))
+//            .findFirst()
+//            .map(Cookie::getValue)
+//            .orElse(null));
+
+//    Cookie[] cookies = req.getCookies();
+//
+//    if (cookies != null) {
+//      System.out.println("***** cookies ******");
+//      System.out.println(Arrays.stream(cookies)
+//              .map(c -> c.getName() + "=" + c.getValue()).collect(Collectors.joining(", ")));
+//    }
+
+
+//    if (!validateId(id, session)) {
+//      return new ResponseEntity("Please login first", HttpStatus.BAD_REQUEST);
+//    }
     User user = userService.findUserByID(id);
-    session.setAttribute("currentUserId", id);
+    //session.setAttribute("currentUserId", id);
+
     return new ResponseEntity(user, HttpStatus.OK);
   }
 
