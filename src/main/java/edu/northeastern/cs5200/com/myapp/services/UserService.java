@@ -46,4 +46,11 @@ public class UserService {
             .filter(user -> user.getUserType().equals("User"))
             .collect(Collectors.toList());
   }
+
+  public User save(User existingUser) {
+    if (existingUser == null) {
+      return null;
+    }
+    return userRepository.save(existingUser);
+  }
 }

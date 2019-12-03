@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -33,7 +34,7 @@ import edu.northeastern.cs5200.com.myapp.services.ContractService;
 import edu.northeastern.cs5200.com.myapp.services.ManagerService;
 import edu.northeastern.cs5200.com.myapp.services.UserService;
 
-@CrossOrigin(origins = "*", allowedHeaders = "*")
+@CrossOrigin(origins = "*", allowedHeaders = "*", exposedHeaders = "Authorization")
 @RestController
 public class UserController {
   @Autowired
@@ -51,7 +52,7 @@ public class UserController {
   @Autowired
   private ContractService contractService;
 
-  @CrossOrigin(origins = "*", allowedHeaders = "*")
+  @CrossOrigin(origins = "*", allowedHeaders = "*", exposedHeaders = "Authorization")
   @PostMapping(path = "/api/users" )
   public ResponseEntity<User> register(@RequestBody User user, HttpSession session) {
 
@@ -94,7 +95,7 @@ public class UserController {
     return new ResponseEntity(newUser, HttpStatus.OK);
   }
 
-  @CrossOrigin(origins = "*", allowedHeaders = "*")
+  @CrossOrigin(origins = "*", allowedHeaders = "*", exposedHeaders = "Authorization")
   @PostMapping(path = "api/user/login" )
   public ResponseEntity login(@RequestBody User user) {
 
@@ -124,7 +125,7 @@ public class UserController {
     return responseEntity;
   }
 
-  @CrossOrigin(origins = "*", allowedHeaders = "*")
+  @CrossOrigin(origins = "*", allowedHeaders = "*", exposedHeaders = "Authorization")
   @GetMapping(path = "api/users/{id}/logout" )
   public ResponseEntity<String> logout(@PathVariable("id") int id, HttpSession session) {
 //    if (!validateId(id, session)) {
@@ -141,7 +142,7 @@ public class UserController {
   }
 
 
-  @CrossOrigin(origins = "*", allowedHeaders = "*")
+  @CrossOrigin(origins = "*", allowedHeaders = "*", exposedHeaders = "Authorization")
   @GetMapping(path = "api/users/{id}/profile" )
   public ResponseEntity<User> profile(@PathVariable("id") Integer id, HttpServletRequest req) {
     //System.out.println("****Cookie Value" + req.getCookies()[0].getValue());
@@ -193,21 +194,111 @@ public class UserController {
     return new ResponseEntity(user, HttpStatus.OK);
   }
 
-  private boolean validateId(int id, HttpSession session) {
-//    if (session == null) {
-//      return false;
-//    }
-//    try {
-//      if (Integer.parseInt(session.getAttribute("currentUserId").toString()) != id) {
-//        return false;
-//      }
-//    } catch (Exception e) {
-//      return false;
-//    }
+  @CrossOrigin(origins = "*", allowedHeaders = "*", exposedHeaders = "Authorization")
+  @PutMapping("/api/users/{id}/update")
+  public ResponseEntity update(@PathVariable("id") int id, @RequestBody User user, HttpServletRequest req) {
+    if (!validateId(id, req)) {
+      return new ResponseEntity("Please login first", HttpStatus.BAD_REQUEST);
+    }
+
+    User existingUser = userService.findUserByID(id);
+
+    if (existingUser == null) {
+      return new ResponseEntity("Please login first", HttpStatus.BAD_REQUEST);
+    }
+
+    if (user.getUserName() == null || user.getPassword() == null) {
+      return new ResponseEntity("UserName or password can not be blank", HttpStatus.BAD_REQUEST);
+    }
+    if (existingUser.getUserType().equals("Manager")) {
+      Manager manager = managerService.findManagerByID(id);
+
+      manager.setUserName(user.getUserName());
+      manager.setPassword(user.getPassword());
+      manager.setFirstName(user.getFirstName());
+      manager.setLastName(user.getLastName());
+      manager.setDob(user.getDob());
+      manager.setAddress(user.getAddress());
+      manager.setPhone(user.getPhone());
+      manager.setEmail(user.getEmail());
+
+      Manager manager1 = managerService.save(manager);
+
+      return new ResponseEntity(manager1, HttpStatus.OK);
+
+    } else if (existingUser.getUserType().equals("Artist")) {
+
+      Artist artist = artistService.findArtistByID(id);
+
+      artist.setUserName(user.getUserName());
+      artist.setPassword(user.getPassword());
+      artist.setFirstName(user.getFirstName());
+      artist.setLastName(user.getLastName());
+      artist.setDob(user.getDob());
+      artist.setAddress(user.getAddress());
+      artist.setPhone(user.getPhone());
+      artist.setEmail(user.getEmail());
+
+      Artist artist1 = artistService.save(artist);
+
+      return new ResponseEntity(artist1, HttpStatus.OK);
+
+    } else if (existingUser.getUserType().equals("Admin")) {
+
+      Admin admin = adminService.findById(id);
+
+      admin.setUserName(user.getUserName());
+      admin.setPassword(user.getPassword());
+      admin.setFirstName(user.getFirstName());
+      admin.setLastName(user.getLastName());
+      admin.setDob(user.getDob());
+      admin.setAddress(user.getAddress());
+      admin.setPhone(user.getPhone());
+      admin.setEmail(user.getEmail());
+
+      Admin admin1 = adminService.save(admin);
+
+      return new ResponseEntity(admin1, HttpStatus.OK);
+
+    } else {
+
+      existingUser.setUserName(user.getUserName());
+      existingUser.setPassword(user.getPassword());
+      existingUser.setFirstName(user.getFirstName());
+      existingUser.setLastName(user.getLastName());
+      existingUser.setDob(user.getDob());
+      existingUser.setAddress(user.getAddress());
+      existingUser.setPhone(user.getPhone());
+      existingUser.setEmail(user.getEmail());
+      User user1 = userService.save(existingUser);
+
+      return new ResponseEntity(user1, HttpStatus.OK);
+    }
+  }
+
+  private boolean validateId(int id, HttpServletRequest req) {
+    String auth = req.getHeader("Authorization");
+    if (auth == null || (auth != null && !auth.equals(""+ id))) {
+      return false;
+    }
     return true;
   }
 
-  @CrossOrigin(origins = "*", allowedHeaders = "*")
+  private boolean validateId(int id, HttpSession session) {
+////    if (session == null) {
+////      return false;
+////    }
+////    try {
+////      if (Integer.parseInt(session.getAttribute("currentUserId").toString()) != id) {
+////        return false;
+////      }
+////    } catch (Exception e) {
+////      return false;
+////    }
+    return true;
+  }
+
+  @CrossOrigin(origins = "*", allowedHeaders = "*", exposedHeaders = "Authorization")
   @PostMapping(path = "api/users/{id}/creatUser" )
   public ResponseEntity<User> createUser(@PathVariable("id") int id, @RequestBody User user, HttpSession session) {
     if (!validateId(id, session)) {
@@ -259,7 +350,7 @@ public class UserController {
   }
 
 
-  @CrossOrigin(origins = "*", allowedHeaders = "*")
+  @CrossOrigin(origins = "*", allowedHeaders = "*", exposedHeaders = "Authorization")
   @PostMapping(path = "api/users/{id}/deleteUser/{userToBeDeleted}" )
   public ResponseEntity<String> deleteUser(@PathVariable("id") int id, @PathVariable("userToBeDeleted") User user, HttpSession session) {
     if (!validateId(id, session)) {
@@ -287,7 +378,7 @@ public class UserController {
     }
   }
 
-  @CrossOrigin(origins = "*", allowedHeaders = "*")
+  @CrossOrigin(origins = "*", allowedHeaders = "*", exposedHeaders = "Authorization")
   @GetMapping(path = "api/users/{id}/listManagers" )
   public ResponseEntity<String> listManagers(@PathVariable("id") int id, HttpSession session) {
     if (!validateId(id, session)) {
@@ -305,7 +396,7 @@ public class UserController {
     return new ResponseEntity(managers, HttpStatus.OK);
   }
 
-  @CrossOrigin(origins = "*", allowedHeaders = "*")
+  @CrossOrigin(origins = "*", allowedHeaders = "*", exposedHeaders = "Authorization")
   @GetMapping(path = "api/users/{id}/listArtists" )
   public ResponseEntity<String> listArtists(@PathVariable("id") int id, HttpSession session) {
     if (!validateId(id, session)) {
@@ -324,7 +415,7 @@ public class UserController {
     return new ResponseEntity(artists, HttpStatus.OK);
   }
 
-  @CrossOrigin(origins = "*", allowedHeaders = "*")
+  @CrossOrigin(origins = "*", allowedHeaders = "*", exposedHeaders = "Authorization")
   @GetMapping(path = "api/users/{id}/listUsers")
   public ResponseEntity<String> listUsers(@PathVariable("id") int id, HttpSession session) {
     if (!validateId(id, session)) {
@@ -343,7 +434,7 @@ public class UserController {
     return new ResponseEntity(users, HttpStatus.OK);
   }
 
-  @CrossOrigin(origins = "*", allowedHeaders = "*")
+  @CrossOrigin(origins = "*", allowedHeaders = "*", exposedHeaders = "Authorization")
   @PostMapping(path = "api/users/{id}/request/artists/{artistId}" )
   public ResponseEntity<Contract> request(@PathVariable("id") int id, @PathVariable("artistId") int artistId, @RequestBody Contract contract, HttpSession session) {
     if (!validateId(id, session)) {
@@ -368,7 +459,7 @@ public class UserController {
     return new ResponseEntity(newContract, HttpStatus.OK);
   }
 
-  @CrossOrigin(origins = "*", allowedHeaders = "*")
+  @CrossOrigin(origins = "*", allowedHeaders = "*", exposedHeaders = "Authorization")
   @GetMapping(path = "api/users/{id}/contracts" )
   public ResponseEntity<List<Contract>> getContracts(@PathVariable("id") int id, HttpSession session) {
     if (!validateId(id, session)) {
@@ -391,7 +482,7 @@ public class UserController {
     return new ResponseEntity(contracts, HttpStatus.OK);
   }
 
-  @CrossOrigin(origins = "*", allowedHeaders = "*")
+  @CrossOrigin(origins = "*", allowedHeaders = "*", exposedHeaders = "Authorization")
   @PostMapping(value = "api/users/{id}/contracts/{contractId}/accept" )
   public ResponseEntity<Contract> acceptContract(@PathVariable("id") int id, @PathVariable("contractId") int contractId, HttpSession session) {
     if (!validateId(id, session)) {
@@ -415,7 +506,7 @@ public class UserController {
     return new ResponseEntity(contract, HttpStatus.OK);
   }
 
-  @CrossOrigin(origins = "*", allowedHeaders = "*")
+  @CrossOrigin(origins = "*", allowedHeaders = "*", exposedHeaders = "Authorization")
   @PostMapping(value = "api/users/{id}/contracts/{contractId}/reject" )
   public ResponseEntity<Contract> rejectContract(@PathVariable("id") int id, @PathVariable("contractId") int contractId, HttpSession session) {
     if (!validateId(id, session)) {
@@ -440,7 +531,7 @@ public class UserController {
     return new ResponseEntity(contract, HttpStatus.OK);
   }
 
-  @CrossOrigin(origins = "*", allowedHeaders = "*")
+  @CrossOrigin(origins = "*", allowedHeaders = "*", exposedHeaders = "Authorization")
   @PostMapping(value = "api/users/{id}/contracts/{contractId}/events" )
   public ResponseEntity<Event> createEvent(@PathVariable("id") int id, @PathVariable("contractId") int contractId, @RequestBody Event event, HttpSession session) {
     if (!validateId(id, session)) {
@@ -472,7 +563,7 @@ public class UserController {
     return new ResponseEntity(newEvent, HttpStatus.OK);
   }
 
-  @CrossOrigin(origins = "*", allowedHeaders = "*")
+  @CrossOrigin(origins = "*", allowedHeaders = "*", exposedHeaders = "Authorization")
   @GetMapping("/api/users/{id}/allUsers")
   public ResponseEntity<List<User>> getAllUsers(@PathVariable("id") int id, HttpSession session) {
     if (!validateId(id, session)) {
@@ -498,6 +589,7 @@ public class UserController {
     session.setAttribute("currentUserId", id);
     return new ResponseEntity(users, HttpStatus.OK);
   }
+
 
 
 }

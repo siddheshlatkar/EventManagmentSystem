@@ -66,4 +66,11 @@ public class ManagerService {
     return manager.getContracts();
 
   }
+
+  public Manager save(Manager manager) {
+    if (manager == null) {
+      return null;
+    }
+    return managerRepository.save(manager);
+  }
 }

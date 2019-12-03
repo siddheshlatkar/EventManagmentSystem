@@ -46,4 +46,11 @@ public class ArtistService {
     Artist artist = artistRepository.findById(id).get();
     return artist.getContracts();
   }
+
+  public Artist save(Artist artist) {
+    if (artist == null) {
+      return null;
+    }
+    return artistRepository.save(artist);
+  }
 }

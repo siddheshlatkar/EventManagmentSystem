@@ -24,4 +24,11 @@ public class AdminService {
   public Admin findById(int id) {
     return adminRepository.findById(id).get();
   }
+
+  public Admin save(Admin admin) {
+    if (admin == null) {
+      return null;
+    }
+    return adminRepository.save(admin);
+  }
 }
