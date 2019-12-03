@@ -276,6 +276,94 @@ public class UserController {
     }
   }
 
+  @CrossOrigin(origins = "*", allowedHeaders = "*", exposedHeaders = "Authorization")
+  @PutMapping("/api/users/{id}/updateUser")
+  public ResponseEntity updateUser(@PathVariable("id") int id, @RequestBody User user, HttpServletRequest req) {
+    if (!validateId(id, req)) {
+      return new ResponseEntity("Please login first", HttpStatus.BAD_REQUEST);
+    }
+
+    User admin2 = userService.findUserByID(id);
+    if (admin2 == null || (admin2 != null && !admin2.getUserType().equals("Admin"))) {
+      return new ResponseEntity("Please login as Admin.", HttpStatus.BAD_REQUEST);
+    }
+
+    if (user.getUserName() == null || user.getPassword() == null || user.getId() == null) {
+      return new ResponseEntity("Id, UserName or password can not be blank", HttpStatus.BAD_REQUEST);
+    }
+
+    User existingUser = userService.findUserByID(user.getId());
+
+    if (existingUser == null) {
+      return new ResponseEntity("Please login first", HttpStatus.BAD_REQUEST);
+    }
+
+    if (existingUser.getUserType().equals("Manager")) {
+      Manager manager = managerService.findManagerByID(id);
+
+      manager.setUserName(user.getUserName());
+      manager.setPassword(user.getPassword());
+      manager.setFirstName(user.getFirstName());
+      manager.setLastName(user.getLastName());
+      manager.setDob(user.getDob());
+      manager.setAddress(user.getAddress());
+      manager.setPhone(user.getPhone());
+      manager.setEmail(user.getEmail());
+
+      Manager manager1 = managerService.save(manager);
+
+      return new ResponseEntity(manager1, HttpStatus.OK);
+
+    } else if (existingUser.getUserType().equals("Artist")) {
+
+      Artist artist = artistService.findArtistByID(id);
+
+      artist.setUserName(user.getUserName());
+      artist.setPassword(user.getPassword());
+      artist.setFirstName(user.getFirstName());
+      artist.setLastName(user.getLastName());
+      artist.setDob(user.getDob());
+      artist.setAddress(user.getAddress());
+      artist.setPhone(user.getPhone());
+      artist.setEmail(user.getEmail());
+
+      Artist artist1 = artistService.save(artist);
+
+      return new ResponseEntity(artist1, HttpStatus.OK);
+
+    } else if (existingUser.getUserType().equals("Admin")) {
+
+      Admin admin = adminService.findById(id);
+
+      admin.setUserName(user.getUserName());
+      admin.setPassword(user.getPassword());
+      admin.setFirstName(user.getFirstName());
+      admin.setLastName(user.getLastName());
+      admin.setDob(user.getDob());
+      admin.setAddress(user.getAddress());
+      admin.setPhone(user.getPhone());
+      admin.setEmail(user.getEmail());
+
+      Admin admin1 = adminService.save(admin);
+
+      return new ResponseEntity(admin1, HttpStatus.OK);
+
+    } else {
+
+      existingUser.setUserName(user.getUserName());
+      existingUser.setPassword(user.getPassword());
+      existingUser.setFirstName(user.getFirstName());
+      existingUser.setLastName(user.getLastName());
+      existingUser.setDob(user.getDob());
+      existingUser.setAddress(user.getAddress());
+      existingUser.setPhone(user.getPhone());
+      existingUser.setEmail(user.getEmail());
+      User user1 = userService.save(existingUser);
+
+      return new ResponseEntity(user1, HttpStatus.OK);
+    }
+  }
+
   private boolean validateId(int id, HttpServletRequest req) {
     String auth = req.getHeader("Authorization");
     if (auth == null || (auth != null && !auth.equals(""+ id))) {
