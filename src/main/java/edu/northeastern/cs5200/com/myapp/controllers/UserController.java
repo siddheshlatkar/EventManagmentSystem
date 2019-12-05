@@ -1,5 +1,9 @@
 package edu.northeastern.cs5200.com.myapp.controllers;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonObject;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -25,6 +29,7 @@ import javax.servlet.http.HttpSession;
 import edu.northeastern.cs5200.com.myapp.models.Admin;
 import edu.northeastern.cs5200.com.myapp.models.Artist;
 import edu.northeastern.cs5200.com.myapp.models.Contract;
+import edu.northeastern.cs5200.com.myapp.models.ContractHelper;
 import edu.northeastern.cs5200.com.myapp.models.Event;
 import edu.northeastern.cs5200.com.myapp.models.Manager;
 import edu.northeastern.cs5200.com.myapp.models.User;
@@ -33,6 +38,9 @@ import edu.northeastern.cs5200.com.myapp.services.ArtistService;
 import edu.northeastern.cs5200.com.myapp.services.ContractService;
 import edu.northeastern.cs5200.com.myapp.services.ManagerService;
 import edu.northeastern.cs5200.com.myapp.services.UserService;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 
 @CrossOrigin(origins = "*", allowedHeaders = "*", exposedHeaders = "Authorization")
 @RestController
@@ -549,7 +557,7 @@ public class UserController {
 
   @CrossOrigin(origins = "*", allowedHeaders = "*", exposedHeaders = "Authorization")
   @GetMapping(path = "api/users/{id}/contracts" )
-  public ResponseEntity<List<Contract>> getContracts(@PathVariable("id") int id, HttpSession session) {
+  public ResponseEntity<List<ContractHelper>> getContracts(@PathVariable("id") int id, HttpSession session) {
     if (!validateId(id, session)) {
       return new ResponseEntity("Please login first", HttpStatus.BAD_REQUEST);
     }
@@ -565,9 +573,15 @@ public class UserController {
       contracts = artistService.getContracts(user.getId());
     }
 
-    session.setAttribute("currentUserId", id);
+    List<ContractHelper> contractHelpers = new ArrayList();
+    for (Contract contract : contracts) {
+      ContractHelper contractHelper = new ContractHelper(contract.getId(), contract.getDate(), contract.getText(), contract.getStatus(), contract.getManager().getFirstName() + " " + contract.getManager().getLastName(),
+              contract.getArtist().getFirstName() + " " + contract.getArtist().getLastName());
+      contractHelpers.add(contractHelper);
+    }
 
-    return new ResponseEntity(contracts, HttpStatus.OK);
+    return new ResponseEntity(contractHelpers, HttpStatus.OK);
+    //return contractsJson;
   }
 
   @CrossOrigin(origins = "*", allowedHeaders = "*", exposedHeaders = "Authorization")
