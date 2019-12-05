@@ -15,4 +15,7 @@ public interface ArtistRepository extends CrudRepository<Artist, Integer> {
 
   @Query("SELECT s FROM Artist s WHERE s.userName=:username and s.password=:password")
   Artist findByUserNameAndPassword(@Param("username") String userName, @Param("password") String password);
+
+  @Query("SELECT s FROM Artist s WHERE s.firstName=:firstName and s.lastName=:lastName")
+  Artist findByFirstNameAndLastName(@Param("firstName")String firstName, @Param("lastName") String lastName);
 }

@@ -1,8 +1,8 @@
 package edu.northeastern.cs5200.com.myapp.controllers;
-
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonObject;
+//
+//import com.google.gson.Gson;
+//import com.google.gson.GsonBuilder;
+//import com.google.gson.JsonObject;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -16,6 +16,9 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import edu.northeastern.cs5200.com.myapp.models.EventHelper;
+import jodd.http.HttpRequest;
+import jodd.http.HttpResponse;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -40,6 +43,11 @@ import edu.northeastern.cs5200.com.myapp.services.ManagerService;
 import edu.northeastern.cs5200.com.myapp.services.UserService;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+import net.minidev.json.JSONArray;
+import net.minidev.json.JSONObject;
+import net.minidev.json.parser.JSONParser;
+import net.minidev.json.parser.ParseException;
 
 
 @CrossOrigin(origins = "*", allowedHeaders = "*", exposedHeaders = "Authorization")
@@ -690,6 +698,62 @@ public class UserController {
 
     session.setAttribute("currentUserId", id);
     return new ResponseEntity(users, HttpStatus.OK);
+  }
+
+  @GetMapping("api/users/{id}/search/{artistFirstName}/{artistLastName}")
+  public ResponseEntity search(@PathVariable("id") int id, @PathVariable("artistFirstName") String artistFisrtName, @PathVariable("artistLastName") String lastName, HttpServletRequest request) throws ParseException {
+    if (!validateId(id, request)) {
+      return new ResponseEntity("Please login first", HttpStatus.BAD_REQUEST);
+    }
+
+    Artist artist = artistService.findArtistByName(artistFisrtName, lastName);
+
+    if (artist == null) {
+      System.out.println("************blank");
+      return new ResponseEntity(new ArrayList(), HttpStatus.OK);
+    }
+
+    List<Contract> contracts = artist.getContracts();
+    List<Event> events = contracts.stream()
+            .map(contract -> contract.getEvent())
+            .filter(a -> a != null)
+            .collect(Collectors.toList());
+
+    List<EventHelper> eventHelpers = new ArrayList();
+
+    for (Event event: events) {
+      eventHelpers.add(new EventHelper(event.getId(), event.getName(), event.getDescription(),
+              event.getCapacity(), event.getDate(), false, event.getContract().getId()));
+    }
+
+    String artistName = artist.getFirstName() + "+" + artist.getLastName();
+    String externalAPIString = "https://api.songkick.com/api/3.0/events.json?apikey=Z1Ca95V8ZKsgJYNa&artist_name={" + artistName + "}";
+
+    HttpResponse response = HttpRequest
+            .get(externalAPIString)
+            .send();
+    System.out.println(response.bodyText());
+    JSONObject object = (JSONObject) new JSONParser().parse(response.bodyText());
+    JSONObject resultsPage = (JSONObject) object.get("resultsPage");
+
+    int totalEntries = Integer.parseInt(resultsPage.get("totalEntries").toString());
+
+    System.out.println("**** Total Entries " + totalEntries );
+
+    JSONObject results = (JSONObject) resultsPage.get("results");
+
+    JSONArray eventsJson = (JSONArray) results.get("event");
+    JSONObject event = (JSONObject) eventsJson.get(0);
+    System.out.println("Link" + event.get("uri").toString());
+
+    for (int i = 0; i < totalEntries; i++) {
+      JSONObject tmpEvent = (JSONObject) eventsJson.get(i);
+
+      eventHelpers.add(new EventHelper(-1, tmpEvent.get("displayName").toString(), tmpEvent.get("uri").toString(), 100, ((JSONObject)tmpEvent.get("start")).get("date").toString(), true, -1));
+    }
+
+
+    return new ResponseEntity(eventHelpers, HttpStatus.OK);
   }
 
 

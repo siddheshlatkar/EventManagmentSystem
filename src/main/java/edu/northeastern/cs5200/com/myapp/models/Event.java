@@ -1,5 +1,7 @@
 package edu.northeastern.cs5200.com.myapp.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
@@ -27,6 +29,7 @@ public class Event {
   private String date;
 
   @OneToOne
+  @JsonIgnore
   private Contract contract;
 
   public Event(String name, String description, int capacity, String date, Contract contract) {

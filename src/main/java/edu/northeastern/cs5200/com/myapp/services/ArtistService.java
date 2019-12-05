@@ -53,4 +53,8 @@ public class ArtistService {
     }
     return artistRepository.save(artist);
   }
+
+  public Artist findArtistByName(String artistFisrtName, String lastName) {
+    return artistRepository.findByFirstNameAndLastName(artistFisrtName, lastName);
+  }
 }
