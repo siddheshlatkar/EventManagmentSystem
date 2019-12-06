@@ -702,9 +702,6 @@ public class UserController {
 
   @GetMapping("api/users/{id}/search/{artistFirstName}/{artistLastName}")
   public ResponseEntity search(@PathVariable("id") int id, @PathVariable("artistFirstName") String artistFisrtName, @PathVariable("artistLastName") String lastName, HttpServletRequest request) throws ParseException {
-    if (!validateId(id, request)) {
-      return new ResponseEntity("Please login first", HttpStatus.BAD_REQUEST);
-    }
 
     Artist artist = artistService.findArtistByName(artistFisrtName, lastName);
 
