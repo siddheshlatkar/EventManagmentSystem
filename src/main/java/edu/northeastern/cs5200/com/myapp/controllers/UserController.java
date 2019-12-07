@@ -550,8 +550,8 @@ public class UserController {
 
   @CrossOrigin(origins = "*", allowedHeaders = "*", exposedHeaders = "Authorization")
   @PostMapping(path = "api/users/{id}/request/artists/{artistId}" )
-  public ResponseEntity<Contract> request(@PathVariable("id") int id, @PathVariable("artistId") int artistId, @RequestBody Contract contract, HttpSession session) {
-    if (!validateId(id, session)) {
+  public ResponseEntity<Contract> request(@PathVariable("id") int id, @PathVariable("artistId") int artistId, @RequestBody Contract contract, HttpServletRequest request) {
+    if (!validateId(id, request)) {
       return new ResponseEntity("Please login first", HttpStatus.BAD_REQUEST);
     }
 
@@ -567,9 +567,6 @@ public class UserController {
     }
 
     Contract newContract = managerService.createContract(manager, artist, contract.getText());
-
-    session.setAttribute("currentUserId", id);
-
     return new ResponseEntity(newContract, HttpStatus.OK);
   }
 
