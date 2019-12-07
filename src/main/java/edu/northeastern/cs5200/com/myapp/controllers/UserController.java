@@ -519,20 +519,12 @@ public class UserController {
 
   @CrossOrigin(origins = "*", allowedHeaders = "*", exposedHeaders = "Authorization")
   @GetMapping(path = "api/users/{id}/listArtists" )
-  public ResponseEntity<String> listArtists(@PathVariable("id") int id, HttpSession session) {
-    if (!validateId(id, session)) {
+  public ResponseEntity<String> listArtists(@PathVariable("id") int id, HttpServletRequest req) {
+    if (!validateId(id, req)) {
       return new ResponseEntity("Please login first", HttpStatus.BAD_REQUEST);
     }
 
-    User admin = userService.findUserByID(id);
-    if (!admin.getUserType().equals("Admin")) {
-      return new ResponseEntity("Please login as a admin.", HttpStatus.BAD_REQUEST);
-    }
-
-
-
     List<Artist> artists = artistService.findAllArtists();
-    session.setAttribute("currentUserId", id);
     return new ResponseEntity(artists, HttpStatus.OK);
   }
 
@@ -821,4 +813,6 @@ public class UserController {
 
     return new ResponseEntity(ticketHelpers, HttpStatus.OK);
   }
+
+
 }
