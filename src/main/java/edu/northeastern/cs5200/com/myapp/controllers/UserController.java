@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -312,7 +313,7 @@ public class UserController {
     }
 
     if (existingUser.getUserType().equals("Manager")) {
-      Manager manager = managerService.findManagerByID(id);
+      Manager manager = managerService.findManagerByID(user.getId());
 
       manager.setUserName(user.getUserName());
       manager.setPassword(user.getPassword());
@@ -329,7 +330,7 @@ public class UserController {
 
     } else if (existingUser.getUserType().equals("Artist")) {
 
-      Artist artist = artistService.findArtistByID(id);
+      Artist artist = artistService.findArtistByID(user.getId());
 
       artist.setUserName(user.getUserName());
       artist.setPassword(user.getPassword());
@@ -346,7 +347,7 @@ public class UserController {
 
     } else if (existingUser.getUserType().equals("Admin")) {
 
-      Admin admin = adminService.findById(id);
+      Admin admin = adminService.findById(user.getId());
 
       admin.setUserName(user.getUserName());
       admin.setPassword(user.getPassword());
@@ -375,6 +376,25 @@ public class UserController {
 
       return new ResponseEntity(user1, HttpStatus.OK);
     }
+  }
+
+  @DeleteMapping("/api/users/id/deleteUser/{userId}")
+  public ResponseEntity deleteUser(@PathVariable("id") int id, @PathVariable("userId") int userId, HttpServletRequest req) {
+    if (!validateId(id, req)) {
+      return new ResponseEntity("Please login first", HttpStatus.BAD_REQUEST);
+    }
+    User user = adminService.findById(id);
+    if (!user.getUserType().equals("Admin")) {
+      return new ResponseEntity("Please login as a admin.", HttpStatus.BAD_REQUEST);
+    }
+
+    if (userService.findUserByID(userId) != null) {
+      userService.deleteUserById(userId);
+      return new ResponseEntity("User Deleted", HttpStatus.OK);
+    } else {
+      return new ResponseEntity("User not exist", HttpStatus.OK);
+    }
+
   }
 
   private boolean validateId(int id, HttpServletRequest req) {
@@ -697,6 +717,7 @@ public class UserController {
     return new ResponseEntity(users, HttpStatus.OK);
   }
 
+  @CrossOrigin(origins = "*", allowedHeaders = "*", exposedHeaders = "Authorization")
   @GetMapping("api/users/search/")
   public ResponseEntity search(@RequestParam("name") String name, @RequestParam("location") String location, HttpServletRequest request) throws ParseException {
     String[] names = null;
@@ -764,6 +785,7 @@ public class UserController {
     return new ResponseEntity(eventHelpers, HttpStatus.OK);
   }
 
+  @CrossOrigin(origins = "*", allowedHeaders = "*", exposedHeaders = "Authorization")
   @PostMapping("/api/users/{userId}/events/{eventId}/tickets")
   public ResponseEntity bookTickets(@PathVariable("userId") int userID, @PathVariable("eventId") int eventID, HttpServletRequest req) {
     if (!validateId(userID, req)) {
@@ -781,6 +803,7 @@ public class UserController {
     return new ResponseEntity(new TicketHelper(ticket.getId(), ticket.getSeat(), event.getId(), event.getName(), event.getDate()), HttpStatus.OK);
   }
 
+  @CrossOrigin(origins = "*", allowedHeaders = "*", exposedHeaders = "Authorization")
   @GetMapping("/api/users/{id}/tickets")
   public ResponseEntity tickets(@PathVariable("id") int id, HttpServletRequest req) {
     if (!validateId(id, req)) {
