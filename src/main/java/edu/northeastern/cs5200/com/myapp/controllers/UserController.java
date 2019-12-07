@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import edu.northeastern.cs5200.com.myapp.models.EventHelper;
@@ -41,6 +42,7 @@ import edu.northeastern.cs5200.com.myapp.services.ArtistService;
 import edu.northeastern.cs5200.com.myapp.services.ContractService;
 import edu.northeastern.cs5200.com.myapp.services.ManagerService;
 import edu.northeastern.cs5200.com.myapp.services.UserService;
+import jodd.util.StringUtil;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -700,31 +702,44 @@ public class UserController {
     return new ResponseEntity(users, HttpStatus.OK);
   }
 
-  @GetMapping("api/users/{id}/search/{artistFirstName}/{artistLastName}")
-  public ResponseEntity search(@PathVariable("id") int id, @PathVariable("artistFirstName") String artistFisrtName, @PathVariable("artistLastName") String lastName, HttpServletRequest request) throws ParseException {
+  @GetMapping("api/users/{id}/search/")
+  public ResponseEntity search(@PathVariable("id") int id, @RequestParam("name") String name, @RequestParam("location") String location, HttpServletRequest request) throws ParseException {
 
-    Artist artist = artistService.findArtistByName(artistFisrtName, lastName);
-
-    if (artist == null) {
-      System.out.println("************blank");
-      return new ResponseEntity(new ArrayList(), HttpStatus.OK);
+    System.out.println("Query ****" + name);
+    String[] names = null;
+    if (name != null && !name.isEmpty()) {
+      names = name.split(" ");
     }
-
-    List<Contract> contracts = artist.getContracts();
-    List<Event> events = contracts.stream()
-            .map(contract -> contract.getEvent())
-            .filter(a -> a != null)
-            .collect(Collectors.toList());
+    Artist artist = null;
+    if (names != null && names.length == 2) {
+      artist = artistService.findArtistByName(names[0], names[1]);
+    }
 
     List<EventHelper> eventHelpers = new ArrayList();
 
-    for (Event event: events) {
-      eventHelpers.add(new EventHelper(event.getId(), event.getName(), event.getDescription(),
-              event.getCapacity(), event.getDate(), false, event.getContract().getId()));
+    if (artist != null) {
+      List<Contract> contracts = artist.getContracts();
+      List<Event> events = contracts.stream()
+              .map(contract -> contract.getEvent())
+              .filter(a -> a != null)
+              .collect(Collectors.toList());
+
+      for (Event event: events) {
+        eventHelpers.add(new EventHelper(event.getId(), event.getName(), event.getDescription(),
+                event.getCapacity(), event.getDate(), false, event.getContract().getId()));
+      }
     }
 
-    String artistName = artist.getFirstName() + "+" + artist.getLastName();
-    String externalAPIString = "https://api.songkick.com/api/3.0/events.json?apikey=Z1Ca95V8ZKsgJYNa&artist_name={" + artistName + "}";
+    String externalAPIString = "";
+    if (name != null && !name.equals("") && location != null && location.length() != 0) {
+      externalAPIString = "https://api.songkick.com/api/3.0/events.json?apikey=Z1Ca95V8ZKsgJYNa" + "&artist_name=" + name + "&location=" + location;
+    } else if (name != null && !name.isEmpty()) {
+      externalAPIString = "https://api.songkick.com/api/3.0/events.json?apikey=Z1Ca95V8ZKsgJYNa" + "&artist_name=" + name;
+    } else if (location != null && !location.isEmpty()) {
+      externalAPIString = "https://api.songkick.com/api/3.0/events.json?apikey=Z1Ca95V8ZKsgJYNa" + "&location=" + location;
+    } else {
+      return new ResponseEntity(new ArrayList(), HttpStatus.OK);
+    }
 
     HttpResponse response = HttpRequest
             .get(externalAPIString)
@@ -740,10 +755,13 @@ public class UserController {
     JSONObject results = (JSONObject) resultsPage.get("results");
 
     JSONArray eventsJson = (JSONArray) results.get("event");
+    if (eventsJson == null) {
+      return new ResponseEntity(eventHelpers, HttpStatus.OK);
+    }
     JSONObject event = (JSONObject) eventsJson.get(0);
     System.out.println("Link" + event.get("uri").toString());
 
-    for (int i = 0; i < totalEntries; i++) {
+    for (int i = 0; i < totalEntries && i < 49; i++) {
       JSONObject tmpEvent = (JSONObject) eventsJson.get(i);
 
       eventHelpers.add(new EventHelper(-1, tmpEvent.get("displayName").toString(), tmpEvent.get("uri").toString(), 100, ((JSONObject)tmpEvent.get("start")).get("date").toString(), true, -1));
