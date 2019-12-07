@@ -378,6 +378,7 @@ public class UserController {
     }
   }
 
+  @CrossOrigin(origins = "*", allowedHeaders = "*", exposedHeaders = "Authorization")
   @DeleteMapping("/api/users/id/deleteUser/{userId}")
   public ResponseEntity deleteUser(@PathVariable("id") int id, @PathVariable("userId") int userId, HttpServletRequest req) {
     if (!validateId(id, req)) {
@@ -812,6 +813,24 @@ public class UserController {
                                           .map(ticket -> new TicketHelper(ticket.getId(), ticket.getSeat(), ticket.getEvent().getId(), ticket.getEvent().getName(), ticket.getEvent().getDate())).collect(Collectors.toList());
 
     return new ResponseEntity(ticketHelpers, HttpStatus.OK);
+  }
+
+  @CrossOrigin(origins = "*", allowedHeaders = "*", exposedHeaders = "Authorization")
+  @GetMapping("/api/users/{id}/events")
+  public ResponseEntity getEventsForUser(@PathVariable("id") int id, HttpServletRequest req) {
+    if (!validateId(id, req)) {
+      return new ResponseEntity("Please login first", HttpStatus.BAD_REQUEST);
+    }
+
+    User user = userService.findUserByID(id);
+
+    if (user == null) {
+      return new ResponseEntity("Please login first", HttpStatus.BAD_REQUEST);
+    }
+
+    List<EventHelper> events = user.getTickets().stream().map(ticket -> new EventHelper(ticket.getEvent().getId(), ticket.getEvent().getName(),
+            ticket.getEvent().getDescription(), ticket.getEvent().getCapacity(), ticket.getEvent().getDate(), false, ticket.getEvent().getContract().getId())).collect(Collectors.toList());
+    return new ResponseEntity(events, HttpStatus.OK);
   }
 
 
