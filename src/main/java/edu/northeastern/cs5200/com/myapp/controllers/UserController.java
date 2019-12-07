@@ -1,7 +1,5 @@
 package edu.northeastern.cs5200.com.myapp.controllers;
 
-import com.google.gson.internal.$Gson$Preconditions;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -14,7 +12,6 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-
 import edu.northeastern.cs5200.com.myapp.models.EventHelper;
 import edu.northeastern.cs5200.com.myapp.models.Ticket;
 import edu.northeastern.cs5200.com.myapp.models.TicketHelper;
@@ -24,7 +21,6 @@ import jodd.http.HttpResponse;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import edu.northeastern.cs5200.com.myapp.models.Admin;
@@ -68,7 +64,7 @@ public class UserController {
 
   @CrossOrigin(origins = "*", allowedHeaders = "*", exposedHeaders = "Authorization")
   @PostMapping(path = "/api/users" )
-  public ResponseEntity<User> register(@RequestBody User user, HttpSession session) {
+  public ResponseEntity<User> register(@RequestBody User user) {
 
     if (user.getUserName() == null || user.getPassword() == null || user.getUserName().isEmpty()
             || user.getPassword().isEmpty() || user.getUserType() == null || user.getUserType().isEmpty()) {
@@ -81,23 +77,19 @@ public class UserController {
 
       newUser = managerService.registerNewManager(new Manager(user.getUserName(), user.getPassword(),
               user.getFirstName(), user.getLastName(), user.getUserType(), user.getDob(), user.getAddress(), user.getEmail(), user.getPhone()));
-      session.setAttribute("currentUserType", "MANAGER");
 
     } else if (user.getUserType().equals("Artist")) {
 
       newUser = artistService.registerNewArtist(new Artist(user.getUserName(), user.getPassword(),
               user.getFirstName(), user.getLastName(), user.getUserType(), user.getDob(), user.getAddress(), user.getEmail(), user.getPhone()));
-      session.setAttribute("currentUserType", "ARTIST");
 
     } else if (user.getUserType().equals("Admin")) {
 
       newUser = adminService.registerNewAdmin(new Admin(user.getUserName(), user.getPassword(),
               user.getFirstName(), user.getLastName(), user.getUserType(), user.getDob(), user.getAddress(), user.getEmail(), user.getPhone()));
-      session.setAttribute("currentUserType", "ADMIN");
 
     } else if (user.getUserType().equals("User")) {
       newUser = userService.registerNewUser(user);
-      session.setAttribute("currentUserType", "USER");
     } else {
       return new ResponseEntity("Invalid user type passed.", HttpStatus.BAD_REQUEST);
     }
@@ -105,8 +97,10 @@ public class UserController {
     if (newUser == null) {
       return new ResponseEntity("Username is already taken", HttpStatus.BAD_REQUEST);
     }
-    session.setAttribute("currentUserId", newUser.getId());
-    return new ResponseEntity(newUser, HttpStatus.OK);
+
+    return ResponseEntity.ok()
+            .header("Authorization", newUser.getId().toString())
+            .body(newUser);
   }
 
   @CrossOrigin(origins = "*", allowedHeaders = "*", exposedHeaders = "Authorization")
@@ -141,7 +135,7 @@ public class UserController {
 
   @CrossOrigin(origins = "*", allowedHeaders = "*", exposedHeaders = "Authorization")
   @GetMapping(path = "api/users/{id}/logout" )
-  public ResponseEntity<String> logout(@PathVariable("id") int id, HttpSession session) {
+  public ResponseEntity<String> logout(@PathVariable("id") int id, HttpServletRequest request) {
 //    if (!validateId(id, session)) {
 //      return new ResponseEntity("Please login first", HttpStatus.BAD_REQUEST);
 //    }
@@ -422,8 +416,8 @@ public class UserController {
 
   @CrossOrigin(origins = "*", allowedHeaders = "*", exposedHeaders = "Authorization")
   @PostMapping(path = "api/users/{id}/creatUser" )
-  public ResponseEntity<User> createUser(@PathVariable("id") int id, @RequestBody User user, HttpSession session) {
-    if (!validateId(id, session)) {
+  public ResponseEntity<User> createUser(@PathVariable("id") int id, @RequestBody User user, HttpServletRequest request) {
+    if (!validateId(id, request)) {
       return new ResponseEntity("Please login first", HttpStatus.BAD_REQUEST);
     }
     User admin = userService.findUserByID(id);
@@ -467,15 +461,14 @@ public class UserController {
       return new ResponseEntity("Username is already taken", HttpStatus.BAD_REQUEST);
     }
 
-    session.setAttribute("currentUserId", id);
     return new ResponseEntity(newUser, HttpStatus.OK);
   }
 
 
   @CrossOrigin(origins = "*", allowedHeaders = "*", exposedHeaders = "Authorization")
   @PostMapping(path = "api/users/{id}/deleteUser/{userToBeDeleted}" )
-  public ResponseEntity<String> deleteUser(@PathVariable("id") int id, @PathVariable("userToBeDeleted") User user, HttpSession session) {
-    if (!validateId(id, session)) {
+  public ResponseEntity<String> deleteUser(@PathVariable("id") int id, @PathVariable("userToBeDeleted") User user, HttpServletRequest request) {
+    if (!validateId(id, request)) {
       return new ResponseEntity("Please login first", HttpStatus.BAD_REQUEST);
     }
 
@@ -490,8 +483,6 @@ public class UserController {
 
     User existingUser = userService.findUserByID(user.getId());
 
-    session.setAttribute("currentUserId", id);
-
     if (existingUser != null) {
       userService.deleteUserById(user.getId());
       return new ResponseEntity("Successfully deleted user", HttpStatus.OK);
@@ -502,8 +493,8 @@ public class UserController {
 
   @CrossOrigin(origins = "*", allowedHeaders = "*", exposedHeaders = "Authorization")
   @GetMapping(path = "api/users/{id}/listManagers" )
-  public ResponseEntity<String> listManagers(@PathVariable("id") int id, HttpSession session) {
-    if (!validateId(id, session)) {
+  public ResponseEntity<String> listManagers(@PathVariable("id") int id, HttpServletRequest request) {
+    if (!validateId(id, request)) {
       return new ResponseEntity("Please login first", HttpStatus.BAD_REQUEST);
     }
 
@@ -511,8 +502,6 @@ public class UserController {
     if (!admin.getUserType().equals("Admin")) {
       return new ResponseEntity("Please login as a admin.", HttpStatus.BAD_REQUEST);
     }
-
-    session.setAttribute("currentUserId", id);
 
     List<Manager> managers = managerService.findAllManagers();
     return new ResponseEntity(managers, HttpStatus.OK);
@@ -531,8 +520,8 @@ public class UserController {
 
   @CrossOrigin(origins = "*", allowedHeaders = "*", exposedHeaders = "Authorization")
   @GetMapping(path = "api/users/{id}/listUsers")
-  public ResponseEntity<String> listUsers(@PathVariable("id") int id, HttpSession session) {
-    if (!validateId(id, session)) {
+  public ResponseEntity<String> listUsers(@PathVariable("id") int id, HttpServletRequest request) {
+    if (!validateId(id, request)) {
       return new ResponseEntity("Please login first", HttpStatus.BAD_REQUEST);
     }
 
@@ -544,7 +533,6 @@ public class UserController {
 
     List<User> users = userService.findAllUsers();
 
-    session.setAttribute("currentUserId", id);
     return new ResponseEntity(users, HttpStatus.OK);
   }
 
@@ -572,8 +560,8 @@ public class UserController {
 
   @CrossOrigin(origins = "*", allowedHeaders = "*", exposedHeaders = "Authorization")
   @GetMapping(path = "api/users/{id}/contracts" )
-  public ResponseEntity<List<ContractHelper>> getContracts(@PathVariable("id") int id, HttpSession session) {
-    if (!validateId(id, session)) {
+  public ResponseEntity<List<ContractHelper>> getContracts(@PathVariable("id") int id, HttpServletRequest request) {
+    if (!validateId(id, request)) {
       return new ResponseEntity("Please login first", HttpStatus.BAD_REQUEST);
     }
 
@@ -601,8 +589,8 @@ public class UserController {
 
   @CrossOrigin(origins = "*", allowedHeaders = "*", exposedHeaders = "Authorization")
   @PostMapping(value = "api/users/{id}/contracts/{contractId}/accept" )
-  public ResponseEntity<Contract> acceptContract(@PathVariable("id") int id, @PathVariable("contractId") int contractId, HttpSession session) {
-    if (!validateId(id, session)) {
+  public ResponseEntity<Contract> acceptContract(@PathVariable("id") int id, @PathVariable("contractId") int contractId, HttpServletRequest request) {
+    if (!validateId(id, request)) {
       return new ResponseEntity("Please login first", HttpStatus.BAD_REQUEST);
     }
 
@@ -619,14 +607,13 @@ public class UserController {
     }
 
     contract = contractService.acceptContract(contractId);
-    session.setAttribute("currentUserId", id);
     return new ResponseEntity(contract, HttpStatus.OK);
   }
 
   @CrossOrigin(origins = "*", allowedHeaders = "*", exposedHeaders = "Authorization")
   @PostMapping(value = "api/users/{id}/contracts/{contractId}/reject" )
-  public ResponseEntity<Contract> rejectContract(@PathVariable("id") int id, @PathVariable("contractId") int contractId, HttpSession session) {
-    if (!validateId(id, session)) {
+  public ResponseEntity<Contract> rejectContract(@PathVariable("id") int id, @PathVariable("contractId") int contractId, HttpServletRequest request) {
+    if (!validateId(id, request)) {
       return new ResponseEntity("Please login first", HttpStatus.BAD_REQUEST);
     }
 
@@ -644,14 +631,13 @@ public class UserController {
 
     contract = contractService.rejectContract(contractId);
 
-    session.setAttribute("currentUserId", id);
     return new ResponseEntity(contract, HttpStatus.OK);
   }
 
   @CrossOrigin(origins = "*", allowedHeaders = "*", exposedHeaders = "Authorization")
   @PostMapping(value = "api/users/{id}/contracts/{contractId}/events" )
-  public ResponseEntity<Event> createEvent(@PathVariable("id") int id, @PathVariable("contractId") int contractId, @RequestBody Event event, HttpSession session) {
-    if (!validateId(id, session)) {
+  public ResponseEntity<Event> createEvent(@PathVariable("id") int id, @PathVariable("contractId") int contractId, @RequestBody Event event,  HttpServletRequest request) {
+    if (!validateId(id, request)) {
       return new ResponseEntity("Please login first", HttpStatus.BAD_REQUEST);
     }
 
@@ -676,14 +662,13 @@ public class UserController {
     Event newEvent = contractService.createEvent(event.getName(), event.getDescription(),
             event.getCapacity(), event.getDate(), contract);
 
-    session.setAttribute("currentUserId", id);
     return new ResponseEntity(newEvent, HttpStatus.OK);
   }
 
   @CrossOrigin(origins = "*", allowedHeaders = "*", exposedHeaders = "Authorization")
   @GetMapping("/api/users/{id}/allUsers")
-  public ResponseEntity<List<User>> getAllUsers(@PathVariable("id") int id, HttpSession session) {
-    if (!validateId(id, session)) {
+  public ResponseEntity<List<User>> getAllUsers(@PathVariable("id") int id, HttpServletRequest request) {
+    if (!validateId(id, request)) {
       return new ResponseEntity("Please login first", HttpStatus.BAD_REQUEST);
     }
 
@@ -702,8 +687,6 @@ public class UserController {
     users.add(managers);
     users.add(userTypes);
     users.add(artists);
-
-    session.setAttribute("currentUserId", id);
     return new ResponseEntity(users, HttpStatus.OK);
   }
 
