@@ -702,10 +702,8 @@ public class UserController {
     return new ResponseEntity(users, HttpStatus.OK);
   }
 
-  @GetMapping("api/users/{id}/search/")
-  public ResponseEntity search(@PathVariable("id") int id, @RequestParam("name") String name, @RequestParam("location") String location, HttpServletRequest request) throws ParseException {
-
-    System.out.println("Query ****" + name);
+  @GetMapping("api/users/search/")
+  public ResponseEntity search(@RequestParam("name") String name, @RequestParam("location") String location, HttpServletRequest request) throws ParseException {
     String[] names = null;
     if (name != null && !name.isEmpty()) {
       names = name.split(" ");
