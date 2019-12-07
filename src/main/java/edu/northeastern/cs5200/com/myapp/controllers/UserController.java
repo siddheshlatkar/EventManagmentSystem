@@ -1,11 +1,8 @@
 package edu.northeastern.cs5200.com.myapp.controllers;
-//
-//import com.google.gson.Gson;
-//import com.google.gson.GsonBuilder;
-//import com.google.gson.JsonObject;
+
+import com.google.gson.internal.$Gson$Preconditions;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -18,18 +15,17 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import edu.northeastern.cs5200.com.myapp.models.EventHelper;
+import edu.northeastern.cs5200.com.myapp.models.Ticket;
+import edu.northeastern.cs5200.com.myapp.models.TicketHelper;
+import edu.northeastern.cs5200.com.myapp.services.EventService;
 import jodd.http.HttpRequest;
 import jodd.http.HttpResponse;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-
 import edu.northeastern.cs5200.com.myapp.models.Admin;
 import edu.northeastern.cs5200.com.myapp.models.Artist;
 import edu.northeastern.cs5200.com.myapp.models.Contract;
@@ -42,10 +38,6 @@ import edu.northeastern.cs5200.com.myapp.services.ArtistService;
 import edu.northeastern.cs5200.com.myapp.services.ContractService;
 import edu.northeastern.cs5200.com.myapp.services.ManagerService;
 import edu.northeastern.cs5200.com.myapp.services.UserService;
-import jodd.util.StringUtil;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import net.minidev.json.JSONArray;
 import net.minidev.json.JSONObject;
 import net.minidev.json.parser.JSONParser;
@@ -69,6 +61,9 @@ public class UserController {
 
   @Autowired
   private ContractService contractService;
+
+  @Autowired
+  private EventService eventService;
 
   @CrossOrigin(origins = "*", allowedHeaders = "*", exposedHeaders = "Authorization")
   @PostMapping(path = "/api/users" )
@@ -769,6 +764,38 @@ public class UserController {
     return new ResponseEntity(eventHelpers, HttpStatus.OK);
   }
 
+  @PostMapping("/api/users/{userId}/events/{eventId}/tickets")
+  public ResponseEntity bookTickets(@PathVariable("userId") int userID, @PathVariable("eventId") int eventID, HttpServletRequest req) {
+    if (!validateId(userID, req)) {
+      return new ResponseEntity("Please login first", HttpStatus.BAD_REQUEST);
+    }
 
+    User user = userService.findUserByID(userID);
 
+    if (user == null) {
+      return new ResponseEntity("Please login first", HttpStatus.BAD_REQUEST);
+    }
+
+    Event event = eventService.findByID(eventID);
+    Ticket ticket = eventService.bookTicket(user, event);
+    return new ResponseEntity(new TicketHelper(ticket.getId(), ticket.getSeat(), event.getId(), event.getName(), event.getDate()), HttpStatus.OK);
+  }
+
+  @GetMapping("/api/users/{id}/tickets")
+  public ResponseEntity tickets(@PathVariable("id") int id, HttpServletRequest req) {
+    if (!validateId(id, req)) {
+      return new ResponseEntity("Please login first", HttpStatus.BAD_REQUEST);
+    }
+
+    User user = userService.findUserByID(id);
+
+    if (user == null) {
+      return new ResponseEntity("Please login first", HttpStatus.BAD_REQUEST);
+    }
+
+    List<TicketHelper> ticketHelpers = user.getTickets().stream()
+                                          .map(ticket -> new TicketHelper(ticket.getId(), ticket.getSeat(), ticket.getEvent().getId(), ticket.getEvent().getName(), ticket.getEvent().getDate())).collect(Collectors.toList());
+
+    return new ResponseEntity(ticketHelpers, HttpStatus.OK);
+  }
 }

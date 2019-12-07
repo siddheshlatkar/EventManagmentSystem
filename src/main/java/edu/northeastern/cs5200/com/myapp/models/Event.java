@@ -2,10 +2,18 @@ package edu.northeastern.cs5200.com.myapp.models;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import org.hibernate.annotations.LazyCollection;
+import org.hibernate.annotations.LazyCollectionOption;
+
+import java.util.List;
+
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
+import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
@@ -31,6 +39,10 @@ public class Event {
   @OneToOne
   @JsonIgnore
   private Contract contract;
+
+  @LazyCollection(LazyCollectionOption.FALSE)
+  @OneToMany(mappedBy = "event", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+  private List<Ticket> tickets;
 
   public Event(String name, String description, int capacity, String date, Contract contract) {
     this.name = name;
@@ -89,5 +101,9 @@ public class Event {
 
   public void setDate(String date) {
     this.date = date;
+  }
+
+  public void addTicket(Ticket ticket) {
+    this.tickets.add(ticket);
   }
 }

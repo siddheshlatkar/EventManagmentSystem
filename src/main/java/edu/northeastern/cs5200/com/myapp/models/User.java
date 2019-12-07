@@ -1,14 +1,21 @@
 package edu.northeastern.cs5200.com.myapp.models;
 
-import java.io.Serializable;
+import org.hibernate.annotations.LazyCollection;
+import org.hibernate.annotations.LazyCollectionOption;
 
+import java.io.Serializable;
+import java.util.List;
+
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Inheritance;
 import javax.persistence.InheritanceType;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
 @Entity
@@ -48,6 +55,11 @@ public class User {
 
   @Column(name = "user_type")
   private String userType;
+
+
+  @LazyCollection(LazyCollectionOption.FALSE)
+  @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+  private List<Ticket> tickets;
 
   public User(String userName, String password, String firstName, String lastName, String userType) {
     this.userName = userName;
@@ -153,5 +165,12 @@ public class User {
     return email;
   }
 
+  public List<Ticket> getTickets() {
+    return tickets;
+  }
+
+  public void setTickets(List<Ticket> tickets) {
+    this.tickets = tickets;
+  }
 }
 
