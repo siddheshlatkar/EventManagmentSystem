@@ -55,6 +55,9 @@ public class ManagerService {
 
   public Contract createContract(Manager manager, Artist artist, String text) {
     Contract contract = new Contract(manager, artist, Calendar.getInstance().getTime().toString(), text, ContractStatus.REQUESTED.getStatus());
+    if (manager.alreadyHasContract(contract)) {
+      return contract;
+    }
     manager.addContract(contract);
     artist.addContract(contract);
     contractRepository.save(contract);

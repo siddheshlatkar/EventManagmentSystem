@@ -115,4 +115,13 @@ public class Contract {
   public void setContractStatus(ContractStatus status) {
     this.status = status.getStatus();
   }
+
+  @Override
+  public boolean equals(Object other) {
+    if (!(other instanceof Contract)) {
+      return false;
+    }
+    Contract contract = (Contract)other;
+    return contract.getManager().getId() == this.getManager().getId() && contract.getArtist().getId() == this.getArtist().getId();
+  }
 }

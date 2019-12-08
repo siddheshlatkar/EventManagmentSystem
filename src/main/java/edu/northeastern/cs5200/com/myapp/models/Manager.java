@@ -54,4 +54,13 @@ public class Manager extends User implements Serializable {
   public void setContracts(List<Contract> contracts) {
     this.contracts = contracts;
   }
+
+  public boolean alreadyHasContract(Contract contract) {
+    for (Contract contract1: this.getContracts()) {
+      if (contract1.equals(contract)) {
+        return true;
+      }
+    }
+    return false;
+  }
 }
