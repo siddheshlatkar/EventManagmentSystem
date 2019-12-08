@@ -109,7 +109,6 @@ public class UserController {
 
     User loggedUser = userService.findByUserIDAndPassword(user.getUserName(), user.getPassword());
 
-
     if (loggedUser == null) {
       return new ResponseEntity("Username or password is wrong", HttpStatus.BAD_REQUEST);
     }
@@ -808,8 +807,26 @@ public class UserController {
       return new ResponseEntity("Please login first", HttpStatus.BAD_REQUEST);
     }
 
-    List<EventHelper> events = user.getTickets().stream().map(ticket -> new EventHelper(ticket.getEvent().getId(), ticket.getEvent().getName(),
-            ticket.getEvent().getDescription(), ticket.getEvent().getCapacity(), ticket.getEvent().getDate(), false, ticket.getEvent().getContract().getId())).collect(Collectors.toList());
+    List<EventHelper> events = new ArrayList<>();
+
+    if (user.getUserType().equals("User")) {
+        events = user.getTickets().stream().map(ticket -> new EventHelper(ticket.getEvent().getId(), ticket.getEvent().getName(),
+                ticket.getEvent().getDescription(), ticket.getEvent().getCapacity(), ticket.getEvent().getDate(), false, ticket.getEvent().getContract().getId())).collect(Collectors.toList());
+    } else if (user.getUserType().equals("Manager")) {
+      Manager manager = managerService.findManagerByID(user.getId());
+      events = manager.getContracts().stream().filter(contract -> contract.getStatus().equals("Accepted"))
+              .map(contract -> contract.getEvent())
+              .filter(event -> event != null)
+              .map(event -> new EventHelper(event.getId(), event.getName(), event.getDescription(), event.getCapacity(), event.getDate(), false, event.getContract().getId())).collect(Collectors.toList());
+    } else if (user.getUserType().equals("Artist")) {
+      Artist artist = artistService.findArtistByID(user.getId());
+
+      events = artist.getContracts().stream().filter(contract -> contract.getStatus().equals("Accepted") && contract != null)
+              .map(contract -> contract.getEvent())
+              .filter(event -> event != null)
+              .map(event -> new EventHelper(event.getId(), event.getName(), event.getDescription(), event.getCapacity(), event.getDate(), false, event.getContract().getId())).collect(Collectors.toList());
+
+    }
     return new ResponseEntity(events, HttpStatus.OK);
   }
 
