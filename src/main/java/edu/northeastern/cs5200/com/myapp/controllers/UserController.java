@@ -16,6 +16,7 @@ import edu.northeastern.cs5200.com.myapp.models.EventHelper;
 import edu.northeastern.cs5200.com.myapp.models.Ticket;
 import edu.northeastern.cs5200.com.myapp.models.TicketHelper;
 import edu.northeastern.cs5200.com.myapp.services.EventService;
+import edu.northeastern.cs5200.com.myapp.services.TicketService;
 import jodd.http.HttpRequest;
 import jodd.http.HttpResponse;
 import java.util.ArrayList;
@@ -61,6 +62,9 @@ public class UserController {
 
   @Autowired
   private EventService eventService;
+
+  @Autowired
+  private TicketService ticketService;
 
   @CrossOrigin(origins = "*", allowedHeaders = "*", exposedHeaders = "Authorization")
   @PostMapping(path = "/api/users" )
@@ -393,6 +397,13 @@ public class UserController {
 
   private boolean validateId(int id, HttpServletRequest req) {
     String auth = req.getHeader("Authorization");
+    if (auth != null && !auth.isEmpty()) {
+      User user = userService.findUserByID(Integer.parseInt(auth));
+      if (user.getUserType().equals("Admin")) {
+        return true;
+      }
+    }
+
     if (auth == null || (auth != null && !auth.equals(""+ id))) {
       return false;
     }
@@ -561,7 +572,7 @@ public class UserController {
   @GetMapping(path = "api/users/{id}/contracts" )
   public ResponseEntity<List<ContractHelper>> getContracts(@PathVariable("id") int id, HttpServletRequest request) {
     if (!validateId(id, request)) {
-      return new ResponseEntity("Please login first", HttpStatus.BAD_REQUEST);
+      //return new ResponseEntity("Please login first", HttpStatus.BAD_REQUEST);
     }
 
     User user = userService.findUserByID(id);
@@ -887,5 +898,28 @@ public class UserController {
     Contract contract = contractService.save(new Contract(manager, artist, "", "", "Requested"));
 
     return new ResponseEntity(contract, HttpStatus.OK);
+  }
+
+  @PutMapping("/api/tickets/{id}")
+  public ResponseEntity updateTicket(@PathVariable("id") int id, @RequestParam("seat") int seat) {
+    Ticket ticket = ticketService.findTicketById(id);
+    if (ticket == null) {
+      return new ResponseEntity("Ticket does not exist", HttpStatus.BAD_REQUEST);
+    }
+    ticket.setSeat(seat);
+    return new ResponseEntity(ticketService.save(ticket), HttpStatus.OK);
+  }
+
+  @DeleteMapping("/api/tickets/{ticketId}")
+  public ResponseEntity deleteTicket(@PathVariable("ticketId") int ticketId) {
+    Ticket ticket = ticketService.findTicketById(ticketId);
+
+    if (ticket == null) {
+      return new ResponseEntity("Ticket does not exist", HttpStatus.BAD_REQUEST);
+    }
+
+    ticketService.delete(ticket);
+
+    return new ResponseEntity("Deleted Ticket", HttpStatus.OK);
   }
 }
