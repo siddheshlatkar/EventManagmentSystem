@@ -1,6 +1,7 @@
 package edu.northeastern.cs5200.com.myapp.services;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import edu.northeastern.cs5200.com.myapp.models.Contract;
@@ -39,5 +40,9 @@ public class ContractService {
   public Event createEvent(String name, String description, int capacity, String date, Contract contract) {
     Event newEvent = new Event(name, description, capacity, date, contract);
     return eventRepository.save(newEvent);
+  }
+
+  public Contract save(Contract requested) {
+    return contractRepository.save(requested);
   }
 }

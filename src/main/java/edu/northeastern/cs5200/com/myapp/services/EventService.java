@@ -27,4 +27,16 @@ public class EventService {
     event.addTicket(ticket);
     return ticketRepository.save(ticket);
   }
+
+  public Event updateEventTo(Event eventToBeUpdated, Event event) {
+    eventToBeUpdated.setCapacity(event.getCapacity());
+    eventToBeUpdated.setDate(event.getDate());
+    eventToBeUpdated.setDescription(event.getDescription());
+    event.setName(event.getName());
+    return eventRepository.save(eventToBeUpdated);
+  }
+
+  public void deleteEvent(Event eventToBeDeleted) {
+    eventRepository.delete(eventToBeDeleted);
+  }
 }

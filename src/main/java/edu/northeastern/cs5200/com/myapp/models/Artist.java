@@ -24,6 +24,7 @@ public class Artist extends User implements Serializable {
   private List<Contract> contracts;
 
 
+
   public Artist(String userName, String password, String firstName, String lastName, String userType) {
     super(userName, password, firstName, lastName, userType);
 
@@ -47,5 +48,9 @@ public class Artist extends User implements Serializable {
 
   public void setContracts(List<Contract> contracts) {
     this.contracts = contracts;
+  }
+
+  public String getGenre() {
+    return genre;
   }
 }

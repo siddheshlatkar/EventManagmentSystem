@@ -2,8 +2,10 @@ package edu.northeastern.cs5200.com.myapp.models;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -39,7 +41,7 @@ public class Contract {
   @JoinColumn
   private Artist artist;
 
-  @OneToOne(mappedBy = "contract")
+  @OneToOne(mappedBy = "contract", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
   private Event event;
 
   public Contract() {
@@ -108,5 +110,9 @@ public class Contract {
 
   public void setEvent(Event event) {
     this.event = event;
+  }
+
+  public void setContractStatus(ContractStatus status) {
+    this.status = status.getStatus();
   }
 }

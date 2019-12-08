@@ -2,8 +2,6 @@ package edu.northeastern.cs5200.com.myapp.models;
 
 import org.hibernate.annotations.LazyCollection;
 import org.hibernate.annotations.LazyCollectionOption;
-
-import java.io.Serializable;
 import java.util.List;
 
 import javax.persistence.CascadeType;

@@ -830,5 +830,62 @@ public class UserController {
     return new ResponseEntity(events, HttpStatus.OK);
   }
 
+  @PutMapping("/api/users/{id}/events/{eventID}")
+  public ResponseEntity updateEvent(@PathVariable("id") int id, @PathVariable("eventID") int eventId, @RequestBody Event event, HttpServletRequest request) {
+    if (!validateId(id, request)) {
+      return new ResponseEntity("Please login first", HttpStatus.BAD_REQUEST);
+    }
 
+    Admin admin = adminService.findById(id);
+    if (admin == null) {
+      return new ResponseEntity("Please login first", HttpStatus.BAD_REQUEST);
+
+    }
+
+    Event eventToBeUpdated = eventService.findByID(eventId);
+
+    if (eventToBeUpdated == null) {
+      return new ResponseEntity("Event does not exist,", HttpStatus.BAD_REQUEST);
+    }
+
+    Event updatedEvent = eventService.updateEventTo(eventToBeUpdated, event);
+
+    return new ResponseEntity(updatedEvent, HttpStatus.OK);
+  }
+
+  @DeleteMapping("/api/users/{id}/events/{eventID}")
+  public ResponseEntity deleteEvent(@PathVariable("id") int id, @PathVariable("eventID") int eventId, HttpServletRequest request) {
+    if (!validateId(id, request)) {
+      return new ResponseEntity("Please login first", HttpStatus.BAD_REQUEST);
+    }
+
+    Admin admin = adminService.findById(id);
+    if (admin == null) {
+      return new ResponseEntity("Please login first", HttpStatus.BAD_REQUEST);
+
+    }
+
+    Event eventToBeDeleted = eventService.findByID(eventId);
+
+    if (eventToBeDeleted == null) {
+      return new ResponseEntity("Event does not exist,", HttpStatus.BAD_REQUEST);
+    }
+
+    eventService.deleteEvent(eventToBeDeleted);
+
+    return new ResponseEntity("Event Deleted", HttpStatus.OK);
+  }
+
+  @PostMapping("/api/admin/{id}/contracts")
+  public ResponseEntity createContracts(@PathVariable("id") int id, HttpServletRequest request, @RequestParam("manager_id") int manager_id, @RequestParam("artist_id") int artist_id) {
+    if (!validateId(id, request)) {
+      return new ResponseEntity("Please login first", HttpStatus.BAD_REQUEST);
+    }
+
+    Manager manager = managerService.findManagerByID(manager_id);
+    Artist artist = artistService.findArtistByID(artist_id);
+    Contract contract = contractService.save(new Contract(manager, artist, "", "", "Requested"));
+
+    return new ResponseEntity(contract, HttpStatus.OK);
+  }
 }
